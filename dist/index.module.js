@@ -83,7 +83,7 @@ class $cf838c15c8b009ba$var$WheelFortune {
             rotation: `+=${rotation}`,
             duration: 3,
             onStart: spinProcess,
-            onComplete: spinEnd
+            onComplete: ()=>this.#tlBlackout.restart()
         });
         this.#tlBlackout.to(this.#containerEl, {
             "--blackout-opacity": "0.6",
