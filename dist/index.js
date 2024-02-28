@@ -31,9 +31,11 @@ class $4fa36e821943b400$var$WheelFortune {
         this.#containerEl = getElement(containerEl);
         this.#segmentsEl = getElement(segmentsEl);
         this.#buttonEl = getElement(buttonEl);
+        console.log("Constructor initialized:", this.#containerEl, this.#segmentsEl, this.#buttonEl);
     }
     static registerGSAP(gsap) {
         $4fa36e821943b400$var$WheelFortune.gsap = gsap;
+        console.log("GSAP registered");
     }
     #calculate(stopSegment) {
         const fullCircle = 360;
@@ -47,6 +49,7 @@ class $4fa36e821943b400$var$WheelFortune {
         };
     }
     spin() {
+        console.log("Spin started");
         const { stopSegment: stopSegment, callback: callback } = this.#spinStates[this.#currentSpinIndex];
         const { fullCircle: fullCircle, wheelTurn: wheelTurn, rotation: rotation } = this.#calculate(stopSegment);
         this.#tlSpin = this.gsap.timeline({
@@ -56,6 +59,7 @@ class $4fa36e821943b400$var$WheelFortune {
             paused: true
         });
         const spinBegin = ()=>{
+            console.log("Spin begin");
             this.gsap.to(this.#containerEl, {
                 "--blurring": "40px",
                 duration: 1,
@@ -65,6 +69,7 @@ class $4fa36e821943b400$var$WheelFortune {
             this.#containerEl.classList.add("is-spinning");
         };
         const spinProcess = ()=>{
+            console.log("Spin process");
             this.gsap.to(this.#containerEl, {
                 "--blurring": "0px",
                 duration: 1,
@@ -73,6 +78,7 @@ class $4fa36e821943b400$var$WheelFortune {
             });
         };
         const spinEnd = ()=>{
+            console.log("Spin end");
             if (callback) callback();
             this.#currentSpinIndex++;
             this.#containerEl.classList.remove("is-spinning");
@@ -110,13 +116,19 @@ class $4fa36e821943b400$var$WheelFortune {
         this.#tlSpin.restart();
     }
     spinAction() {
-        this.#buttonEl.onclick = ()=>this.spin();
+        console.log("Spin action setup");
+        this.#buttonEl.onclick = ()=>{
+            console.log("Button clicked");
+            this.spin();
+        };
     }
     init() {
+        console.log("Initialization");
         this.spinAction();
         this.#containerEl.style.setProperty("--blackout-opacity", "0");
     }
     destroy() {
+        console.log("Destroying");
         this.gsap.killTweensOf([
             this.#containerEl,
             this.#segmentsEl
