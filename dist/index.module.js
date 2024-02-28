@@ -8,7 +8,9 @@ class $cf838c15c8b009ba$var$WheelFortune {
     #currentSpinIndex;
     #tlSpin;
     #tlBlackout;
+    static gsap;
     constructor({ containerEl: containerEl = ".wheel", segmentsEl: segmentsEl = ".wheel__segments", buttonEl: buttonEl = ".wheel__button", rotationCount: rotationCount = 3, segmentCount: segmentCount = 8, spinStates: spinStates = [] } = {}){
+        this.gsap = $cf838c15c8b009ba$var$WheelFortune.gsap || window.gsap;
         this.#rotationCount = rotationCount;
         this.#segmentCount = segmentCount;
         this.#spinStates = spinStates;
@@ -17,6 +19,9 @@ class $cf838c15c8b009ba$var$WheelFortune {
         this.#containerEl = getElement(containerEl);
         this.#segmentsEl = getElement(segmentsEl);
         this.#buttonEl = getElement(buttonEl);
+    }
+    static registerGSAP(gsap1) {
+        $cf838c15c8b009ba$var$WheelFortune.gsap = gsap1;
     }
     #calculate(stopSegment) {
         const fullCircle = 360;

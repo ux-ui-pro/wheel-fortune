@@ -9,6 +9,8 @@ class WheelFortune {
   #tlSpin;
   #tlBlackout;
 
+  static gsap;
+
   constructor({
     containerEl = '.wheel',
     segmentsEl = '.wheel__segments',
@@ -17,6 +19,8 @@ class WheelFortune {
     segmentCount = 8,
     spinStates = [],
   } = {}) {
+    this.gsap = WheelFortune.gsap || window.gsap;
+
     this.#rotationCount = rotationCount;
     this.#segmentCount = segmentCount;
     this.#spinStates = spinStates;
@@ -27,6 +31,10 @@ class WheelFortune {
     this.#containerEl = getElement(containerEl);
     this.#segmentsEl = getElement(segmentsEl);
     this.#buttonEl = getElement(buttonEl);
+  }
+
+  static registerGSAP(gsap) {
+    WheelFortune.gsap = gsap;
   }
 
   #calculate(stopSegment) {
