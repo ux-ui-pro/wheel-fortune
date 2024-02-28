@@ -12,13 +12,13 @@ class WheelFortune {
   static gsap;
 
   constructor({
-                containerEl = '.wheel',
-                segmentsEl = '.wheel__segments',
-                buttonEl = '.wheel__button',
-                rotationCount = 3,
-                segmentCount = 8,
-                spinStates = [],
-              } = {}) {
+    containerEl = '.wheel',
+    segmentsEl = '.wheel__segments',
+    buttonEl = '.wheel__button',
+    rotationCount = 3,
+    segmentCount = 8,
+    spinStates = [],
+  } = {}) {
     this.gsap = WheelFortune.gsap || window.gsap;
 
     this.#rotationCount = rotationCount;
