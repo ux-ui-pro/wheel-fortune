@@ -50,11 +50,11 @@ class WheelFortune {
     const { stopSegment, callback } = this.#spinStates[this.#currentSpinIndex];
     const { fullCircle, wheelTurn, rotation } = this.#calculate(stopSegment);
 
-    this.#tlSpin = gsap.timeline({ paused: true });
-    this.#tlBlackout = gsap.timeline({ paused: true });
+    this.#tlSpin = this.gsap.timeline({ paused: true });
+    this.#tlBlackout = this.gsap.timeline({ paused: true });
 
     const spinBegin = () => {
-      gsap.to(this.#containerEl, {
+      this.gsap.to(this.#containerEl, {
         '--blurring': '40px',
         duration: 1,
         delay: 0.25,
@@ -65,7 +65,7 @@ class WheelFortune {
     };
 
     const spinProcess = () => {
-      gsap.to(this.#containerEl, {
+      this.gsap.to(this.#containerEl, {
         '--blurring': '0px',
         duration: 1,
         delay: 0.5,
@@ -74,7 +74,7 @@ class WheelFortune {
     };
 
     const spinEnd = () => {
-      callback?.();
+      if (callback) callback();
 
       this.#currentSpinIndex++;
       this.#containerEl.classList.remove('is-spinning');
@@ -88,23 +88,23 @@ class WheelFortune {
       .to(this.#segmentsEl, {
         clearProps: 'rotation',
         ease: 'power2.in',
-        rotation: `+=${ wheelTurn }`,
+        rotation: `+=${wheelTurn}`,
         duration: 1.5,
         onStart: spinBegin,
       })
       .to(this.#segmentsEl, {
         clearProps: 'rotation',
         ease: 'none',
-        rotation: `+=${ fullCircle }`,
+        rotation: `+=${fullCircle}`,
         duration: 0.15,
         repeat: this.#rotationCount,
       })
       .to(this.#segmentsEl, {
         ease: CustomEase.create('custom', 'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1'),
-        rotation: `+=${ rotation }`,
+        rotation: `+=${rotation}`,
         duration: 3,
         onStart: spinProcess,
-        onComplete: () => this.#tlBlackout.restart(),
+        onComplete: spinEnd,
       });
 
     this.#tlBlackout
@@ -124,20 +124,16 @@ class WheelFortune {
   }
 
   spinAction() {
-    this.#buttonEl.onclick = () => {
-      this.spin();
-    };
+    this.#buttonEl.onclick = () => this.spin();
   }
 
   init() {
     this.spinAction();
-
-    this.#containerEl.style.setProperty('--blackout-angle', this.#segmentCount);
+    this.#containerEl.style.setProperty('--blackout-opacity', '0');
   }
 
   destroy() {
-    gsap.killTweensOf([this.#containerEl, this.#segmentsEl]);
-
+    this.gsap.killTweensOf([this.#containerEl, this.#segmentsEl]);
     this.#buttonEl.onclick = null;
   }
 }

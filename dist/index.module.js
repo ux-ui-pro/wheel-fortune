@@ -20,8 +20,8 @@ class $cf838c15c8b009ba$var$WheelFortune {
         this.#segmentsEl = getElement(segmentsEl);
         this.#buttonEl = getElement(buttonEl);
     }
-    static registerGSAP(gsap1) {
-        $cf838c15c8b009ba$var$WheelFortune.gsap = gsap1;
+    static registerGSAP(gsap) {
+        $cf838c15c8b009ba$var$WheelFortune.gsap = gsap;
     }
     #calculate(stopSegment) {
         const fullCircle = 360;
@@ -37,14 +37,14 @@ class $cf838c15c8b009ba$var$WheelFortune {
     spin() {
         const { stopSegment: stopSegment, callback: callback } = this.#spinStates[this.#currentSpinIndex];
         const { fullCircle: fullCircle, wheelTurn: wheelTurn, rotation: rotation } = this.#calculate(stopSegment);
-        this.#tlSpin = gsap.timeline({
+        this.#tlSpin = this.gsap.timeline({
             paused: true
         });
-        this.#tlBlackout = gsap.timeline({
+        this.#tlBlackout = this.gsap.timeline({
             paused: true
         });
         const spinBegin = ()=>{
-            gsap.to(this.#containerEl, {
+            this.gsap.to(this.#containerEl, {
                 "--blurring": "40px",
                 duration: 1,
                 delay: 0.25,
@@ -53,7 +53,7 @@ class $cf838c15c8b009ba$var$WheelFortune {
             this.#containerEl.classList.add("is-spinning");
         };
         const spinProcess = ()=>{
-            gsap.to(this.#containerEl, {
+            this.gsap.to(this.#containerEl, {
                 "--blurring": "0px",
                 duration: 1,
                 delay: 0.5,
@@ -61,7 +61,7 @@ class $cf838c15c8b009ba$var$WheelFortune {
             });
         };
         const spinEnd = ()=>{
-            callback?.();
+            if (callback) callback();
             this.#currentSpinIndex++;
             this.#containerEl.classList.remove("is-spinning");
             if (this.#currentSpinIndex >= this.#spinStates.length) this.#containerEl.classList.add("end-last-spin");
@@ -83,7 +83,7 @@ class $cf838c15c8b009ba$var$WheelFortune {
             rotation: `+=${rotation}`,
             duration: 3,
             onStart: spinProcess,
-            onComplete: ()=>this.#tlBlackout.restart()
+            onComplete: spinEnd
         });
         this.#tlBlackout.to(this.#containerEl, {
             "--blackout-opacity": "0.6",
@@ -98,16 +98,14 @@ class $cf838c15c8b009ba$var$WheelFortune {
         this.#tlSpin.restart();
     }
     spinAction() {
-        this.#buttonEl.onclick = ()=>{
-            this.spin();
-        };
+        this.#buttonEl.onclick = ()=>this.spin();
     }
     init() {
         this.spinAction();
-        this.#containerEl.style.setProperty("--blackout-angle", this.#segmentCount);
+        this.#containerEl.style.setProperty("--blackout-opacity", "0");
     }
     destroy() {
-        gsap.killTweensOf([
+        this.gsap.killTweensOf([
             this.#containerEl,
             this.#segmentsEl
         ]);
