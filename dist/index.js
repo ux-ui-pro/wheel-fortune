@@ -115,6 +115,7 @@ class $4fa36e821943b400$var$WheelFortune {
     init() {
         this.spinAction();
         this.#containerEl.style.setProperty("--blackout-opacity", "0");
+        this.#containerEl.style.setProperty("--blackout-angle", this.#segmentCount);
     }
     destroy() {
         this.gsap.killTweensOf([

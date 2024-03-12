@@ -1,12 +1,20 @@
 class WheelFortune {
   #containerEl;
+
   #segmentsEl;
+
   #buttonEl;
+
   #rotationCount;
+
   #segmentCount;
+
   #spinStates;
+
   #currentSpinIndex;
+
   #tlSpin;
+
   #tlBlackout;
 
   static gsap;
@@ -26,7 +34,7 @@ class WheelFortune {
     this.#spinStates = spinStates;
     this.#currentSpinIndex = 0;
 
-    const getElement = (el) => el instanceof HTMLElement ? el : document.querySelector(el);
+    const getElement = (el) => (el instanceof HTMLElement ? el : document.querySelector(el));
 
     this.#containerEl = getElement(containerEl);
     this.#segmentsEl = getElement(segmentsEl);
@@ -130,6 +138,7 @@ class WheelFortune {
   init() {
     this.spinAction();
     this.#containerEl.style.setProperty('--blackout-opacity', '0');
+    this.#containerEl.style.setProperty('--blackout-angle', this.#segmentCount);
   }
 
   destroy() {

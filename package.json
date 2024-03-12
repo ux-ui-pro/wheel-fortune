@@ -1,6 +1,6 @@
 {
   "name": "wheel-fortune",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A class for creating a customisable wheel of fortune.",
   "author": "ux-ui.pro",
   "license": "MIT",
@@ -30,6 +30,7 @@
   "devDependencies": {
     "eslint": "^7.32.0 || ^8.57.0",
     "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
     "parcel": "^2.11.0"
   },
   "keywords": []
