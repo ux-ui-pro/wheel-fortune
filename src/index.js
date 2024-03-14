@@ -19,6 +19,8 @@ class WheelFortune {
 
   static gsap;
 
+  static customEase;
+
   constructor({
     containerEl = '.wheel',
     segmentsEl = '.wheel__segments',
@@ -41,8 +43,9 @@ class WheelFortune {
     this.#buttonEl = getElement(buttonEl);
   }
 
-  static registerGSAP(gsap) {
+  static registerGSAP(gsap, customEase) {
     WheelFortune.gsap = gsap;
+    WheelFortune.customEase = customEase;
   }
 
   #calculate(stopSegment) {
@@ -84,7 +87,7 @@ class WheelFortune {
     const spinEnd = () => {
       if (callback) callback();
 
-      this.#currentSpinIndex++;
+      this.#currentSpinIndex += 1;
       this.#containerEl.classList.remove('is-spinning');
 
       if (this.#currentSpinIndex >= this.#spinStates.length) {
@@ -108,7 +111,7 @@ class WheelFortune {
         repeat: this.#rotationCount,
       })
       .to(this.#segmentsEl, {
-        ease: CustomEase.create('custom', 'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1'),
+        ease: WheelFortune.customEase.create('custom', 'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1'),
         rotation: `+=${rotation}`,
         duration: 3,
         onStart: spinProcess,

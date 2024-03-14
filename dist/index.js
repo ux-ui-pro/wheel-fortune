@@ -21,6 +21,7 @@ class $4fa36e821943b400$var$WheelFortune {
     #tlSpin;
     #tlBlackout;
     static gsap;
+    static customEase;
     constructor({ containerEl: containerEl = ".wheel", segmentsEl: segmentsEl = ".wheel__segments", buttonEl: buttonEl = ".wheel__button", rotationCount: rotationCount = 3, segmentCount: segmentCount = 8, spinStates: spinStates = [] } = {}){
         this.gsap = $4fa36e821943b400$var$WheelFortune.gsap || window.gsap;
         this.#rotationCount = rotationCount;
@@ -32,8 +33,9 @@ class $4fa36e821943b400$var$WheelFortune {
         this.#segmentsEl = getElement(segmentsEl);
         this.#buttonEl = getElement(buttonEl);
     }
-    static registerGSAP(gsap) {
+    static registerGSAP(gsap, customEase) {
         $4fa36e821943b400$var$WheelFortune.gsap = gsap;
+        $4fa36e821943b400$var$WheelFortune.customEase = customEase;
     }
     #calculate(stopSegment) {
         const fullCircle = 360;
@@ -74,7 +76,7 @@ class $4fa36e821943b400$var$WheelFortune {
         };
         const spinEnd = ()=>{
             if (callback) callback();
-            this.#currentSpinIndex++;
+            this.#currentSpinIndex += 1;
             this.#containerEl.classList.remove("is-spinning");
             if (this.#currentSpinIndex >= this.#spinStates.length) this.#containerEl.classList.add("end-last-spin");
         };
@@ -91,7 +93,7 @@ class $4fa36e821943b400$var$WheelFortune {
             duration: 0.15,
             repeat: this.#rotationCount
         }).to(this.#segmentsEl, {
-            ease: CustomEase.create("custom", "M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1"),
+            ease: $4fa36e821943b400$var$WheelFortune.customEase.create("custom", "M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1"),
             rotation: `+=${rotation}`,
             duration: 3,
             onStart: spinProcess,
