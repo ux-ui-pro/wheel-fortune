@@ -31,7 +31,7 @@ import CustomEase from 'gsap/CustomEase';
 import WheelFortune from 'wheel-fortune';
 
 gsap.registerPlugin(CustomEase);
-WheelFortune.registerGSAP(gsap);
+WheelFortune.registerGSAP(gsap, CustomEase);
 ```
 <br>
 
