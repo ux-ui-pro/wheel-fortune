@@ -8,14 +8,17 @@ class $cf838c15c8b009ba$var$WheelFortune {
     #currentSpinIndex;
     #tlSpin;
     #tlBlackout;
+    #wheelLibration;
+    #tlLibration;
     static gsap;
     static customEase;
-    constructor({ containerEl: containerEl = ".wheel", segmentsEl: segmentsEl = ".wheel__segments", buttonEl: buttonEl = ".wheel__button", rotationCount: rotationCount = 3, segmentCount: segmentCount = 8, spinStates: spinStates = [] } = {}){
+    constructor({ containerEl: containerEl = ".wheel", segmentsEl: segmentsEl = ".wheel__segments", buttonEl: buttonEl = ".wheel__button", rotationCount: rotationCount = 3, segmentCount: segmentCount = 8, spinStates: spinStates = [], wheelLibration: wheelLibration = false } = {}){
         this.gsap = $cf838c15c8b009ba$var$WheelFortune.gsap || window.gsap;
         this.#rotationCount = rotationCount;
         this.#segmentCount = segmentCount;
         this.#spinStates = spinStates;
         this.#currentSpinIndex = 0;
+        this.#wheelLibration = wheelLibration;
         const getElement = (el)=>el instanceof HTMLElement ? el : document.querySelector(el);
         this.#containerEl = getElement(containerEl);
         this.#segmentsEl = getElement(segmentsEl);
@@ -37,6 +40,10 @@ class $cf838c15c8b009ba$var$WheelFortune {
         };
     }
     spin() {
+        if (this.#tlLibration) {
+            this.#tlLibration.kill();
+            this.#tlLibration = null;
+        }
         const { stopSegment: stopSegment, callback: callback } = this.#spinStates[this.#currentSpinIndex];
         const { fullCircle: fullCircle, wheelTurn: wheelTurn, rotation: rotation } = this.#calculate(stopSegment);
         this.#tlSpin = this.gsap.timeline({
@@ -63,7 +70,6 @@ class $cf838c15c8b009ba$var$WheelFortune {
             });
         };
         const spinEnd = ()=>{
-            if (callback) callback();
             this.#currentSpinIndex += 1;
             this.#containerEl.classList.remove("is-spinning");
             if (this.#currentSpinIndex >= this.#spinStates.length) this.#containerEl.classList.add("end-last-spin");
@@ -85,7 +91,10 @@ class $cf838c15c8b009ba$var$WheelFortune {
             rotation: `+=${rotation}`,
             duration: 3,
             onStart: spinProcess,
-            onComplete: ()=>this.#tlBlackout.restart()
+            onComplete: ()=>{
+                if (callback) callback();
+                this.#tlBlackout.restart();
+            }
         });
         this.#tlBlackout.to(this.#containerEl, {
             "--blackout-opacity": "0.6",
@@ -99,6 +108,24 @@ class $cf838c15c8b009ba$var$WheelFortune {
         }, "<2");
         this.#tlSpin.restart();
     }
+    #libration() {
+        this.#tlLibration = this.gsap.timeline();
+        this.#tlLibration.set(this.#segmentsEl, {
+            rotate: 0
+        }).to(this.#segmentsEl, {
+            rotate: -6,
+            duration: 0.75,
+            ease: "power1.inOut"
+        }).fromTo(this.#segmentsEl, {
+            rotate: -6
+        }, {
+            rotate: 6,
+            duration: 1.5,
+            repeat: -1,
+            yoyo: true,
+            ease: "power1.inOut"
+        });
+    }
     spinAction() {
         this.#buttonEl.onclick = ()=>this.spin();
     }
@@ -106,6 +133,7 @@ class $cf838c15c8b009ba$var$WheelFortune {
         this.spinAction();
         this.#containerEl.style.setProperty("--blackout-opacity", "0");
         this.#containerEl.style.setProperty("--blackout-angle", this.#segmentCount);
+        if (this.#wheelLibration) this.#libration();
     }
     destroy() {
         this.gsap.killTweensOf([

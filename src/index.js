@@ -17,24 +17,30 @@ class WheelFortune {
 
   #tlBlackout;
 
+  #wheelLibration;
+
+  #tlLibration;
+
   static gsap;
 
   static customEase;
 
   constructor({
-    containerEl = '.wheel',
-    segmentsEl = '.wheel__segments',
-    buttonEl = '.wheel__button',
-    rotationCount = 3,
-    segmentCount = 8,
-    spinStates = [],
-  } = {}) {
+                containerEl = '.wheel',
+                segmentsEl = '.wheel__segments',
+                buttonEl = '.wheel__button',
+                rotationCount = 3,
+                segmentCount = 8,
+                spinStates = [],
+                wheelLibration = false,
+              } = {}) {
     this.gsap = WheelFortune.gsap || window.gsap;
 
     this.#rotationCount = rotationCount;
     this.#segmentCount = segmentCount;
     this.#spinStates = spinStates;
     this.#currentSpinIndex = 0;
+    this.#wheelLibration = wheelLibration;
 
     const getElement = (el) => (el instanceof HTMLElement ? el : document.querySelector(el));
 
@@ -58,6 +64,11 @@ class WheelFortune {
   }
 
   spin() {
+    if (this.#tlLibration) {
+      this.#tlLibration.kill();
+      this.#tlLibration = null;
+    }
+
     const { stopSegment, callback } = this.#spinStates[this.#currentSpinIndex];
     const { fullCircle, wheelTurn, rotation } = this.#calculate(stopSegment);
 
@@ -85,8 +96,6 @@ class WheelFortune {
     };
 
     const spinEnd = () => {
-      if (callback) callback();
-
       this.#currentSpinIndex += 1;
       this.#containerEl.classList.remove('is-spinning');
 
@@ -115,7 +124,11 @@ class WheelFortune {
         rotation: `+=${rotation}`,
         duration: 3,
         onStart: spinProcess,
-        onComplete: () => this.#tlBlackout.restart(),
+        onComplete: () => {
+          if (callback) callback();
+
+          this.#tlBlackout.restart();
+        },
       });
 
     this.#tlBlackout
@@ -134,6 +147,29 @@ class WheelFortune {
     this.#tlSpin.restart();
   }
 
+  #libration() {
+    this.#tlLibration = this.gsap.timeline();
+
+    this.#tlLibration
+      .set(this.#segmentsEl, {
+        rotate: 0,
+      })
+      .to(this.#segmentsEl, {
+        rotate: -6,
+        duration: 0.75,
+        ease: 'power1.inOut',
+      })
+      .fromTo(this.#segmentsEl, {
+        rotate: -6,
+      }, {
+        rotate: 6,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power1.inOut',
+      });
+  }
+
   spinAction() {
     this.#buttonEl.onclick = () => this.spin();
   }
@@ -142,6 +178,10 @@ class WheelFortune {
     this.spinAction();
     this.#containerEl.style.setProperty('--blackout-opacity', '0');
     this.#containerEl.style.setProperty('--blackout-angle', this.#segmentCount);
+
+    if (this.#wheelLibration) {
+      this.#libration();
+    }
   }
 
   destroy() {
