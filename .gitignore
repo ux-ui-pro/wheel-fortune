@@ -1,13 +1,31 @@
-/.idea
-/node_modules
-/.parcel-cache
-/.parcel
-/**/*.log
-/**/*.txt
+# OS generated files
+*~
+.DS_Store
 Thumbs.db
+
+# Memo files
 memo.md
+
+# Build & Packages
+node_modules/
+.parcel*
+parcel-*
+pnpm-*
+dist/
+
+# IDE
+.idea/
+.vscode/
+
+# Logs and debug files
+*.log
+*.txt
+
+# Package managers lock files
 package-lock.json
 yarn.lock
-.eslintignore
-.eslintrc.json
-/**/*.html
+
+# Environment files
+.env
+.env.development
+.env.production

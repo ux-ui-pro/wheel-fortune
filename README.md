@@ -3,7 +3,7 @@
 
 <h1>wheel-fortune</h1>
 
-<p><sup>A class for creating a customisable wheel of fortune.</sup></p>
+<p><sup>WheelFortune implements an animation of a spinning wheel of fortune using the GSAP library. It allows customization of parameters including the number of segments, number of revolutions, spin states, and callbacks.</sup></p>
 
 [![npm](https://img.shields.io/npm/v/wheel-fortune.svg?colorB=brightgreen)](https://www.npmjs.com/package/wheel-fortune)
 [![GitHub package version](https://img.shields.io/github/package-json/v/ux-ui-pro/wheel-fortune.svg)](https://github.com/ux-ui-pro/wheel-fortune)
