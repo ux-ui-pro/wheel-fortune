@@ -17,7 +17,7 @@
 <br>
 
 &#10148; **Install**
-```
+```console
 $ yarn add gsap
 $ yarn add wheel-fortune
 ```

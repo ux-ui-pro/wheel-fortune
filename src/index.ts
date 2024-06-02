@@ -1,39 +1,44 @@
-declare global {
-  interface Window {
-    gsap: any;
-  }
-}
-
 type SpinState = {
   stopSegment: number;
   callback?: () => void;
 };
 
-type WheelFortuneOptions = {
-  containerEl?: string | HTMLElement;
-  segmentsEl?: string | HTMLElement;
-  buttonEl?: string | HTMLElement;
+interface WheelFortuneConfig {
+  containerEl?: HTMLElement | string;
+  segmentsEl?: HTMLElement | string;
+  buttonEl?: HTMLElement | string;
   rotationCount?: number;
   segmentCount?: number;
   spinStates?: SpinState[];
   wheelLibration?: boolean;
-};
+}
 
 class WheelFortune {
   private readonly containerEl: HTMLElement;
-  private readonly segmentsEl: HTMLElement;
-  private buttonEl: HTMLElement;
-  private readonly rotationCount: number;
-  private readonly segmentCount: number;
-  private readonly spinStates: SpinState[];
-  private currentSpinIndex: number;
-  private tlSpin: any;
-  private tlBlackout: any;
-  private readonly wheelLibration: boolean;
-  private tlLibration: any;
 
-  static gsap: any;
-  static customEase: any;
+  private readonly segmentsEl: HTMLElement;
+
+  private buttonEl: HTMLElement;
+
+  private readonly rotationCount: number;
+
+  private readonly segmentCount: number;
+
+  private readonly spinStates: SpinState[];
+
+  private currentSpinIndex: number;
+
+  private tlSpin: never;
+
+  private tlBlackout: never;
+
+  private readonly wheelLibration: boolean;
+
+  private tlLibration: never;
+
+  static gsap: never;
+
+  static customEase: never;
 
   constructor({
     containerEl = '.wheel',
@@ -43,8 +48,10 @@ class WheelFortune {
     segmentCount = 8,
     spinStates = [],
     wheelLibration = false,
-  }: WheelFortuneOptions = {}) {
-    const gsapInstance = WheelFortune.gsap || window.gsap;
+  }: WheelFortuneConfig = {}) {
+    if (!WheelFortune.gsap) {
+      throw new Error('GSAP is not registered. Please call WheelFortune.registerGSAP() first.');
+    }
 
     this.rotationCount = rotationCount;
     this.segmentCount = segmentCount;
@@ -52,18 +59,25 @@ class WheelFortune {
     this.currentSpinIndex = 0;
     this.wheelLibration = wheelLibration;
 
-    const getElement = (el: string | HTMLElement): HTMLElement =>
-      el instanceof HTMLElement ? el : document.querySelector(el)!;
+    const getElement = (el: HTMLElement | string): HTMLElement => {
+      if (el instanceof HTMLElement) return el;
+
+      const element = document.querySelector(el);
+
+      if (!element) {
+        throw new Error(`Element ${el} not found`);
+      }
+
+      return element as HTMLElement;
+    };
 
     this.containerEl = getElement(containerEl);
     this.segmentsEl = getElement(segmentsEl);
     this.buttonEl = getElement(buttonEl);
-
-    WheelFortune.gsap = gsapInstance;
   }
 
-  static registerGSAP(gsap: any, customEase: any) {
-    WheelFortune.gsap = gsap;
+  static registerGSAP(gsapInstance: never, customEase: never) {
+    WheelFortune.gsap = gsapInstance;
     WheelFortune.customEase = customEase;
   }
 
@@ -71,59 +85,30 @@ class WheelFortune {
     const fullCircle = 360;
     const segmentAngle = fullCircle / this.segmentCount;
     const wheelTurn = fullCircle * this.rotationCount;
-    const rotation = wheelTurn - segmentAngle * (stopSegment - 1);
+    const rotation = wheelTurn - (segmentAngle * (stopSegment - 1));
 
     return { fullCircle, wheelTurn, rotation };
   }
 
-  public spin() {
-    if (this.tlLibration) {
-      this.tlLibration.kill();
-      this.tlLibration = null;
-    }
+  private createSpinTimeline(wheelTurn: number, fullCircle: number, rotation: number, callback?: () => void) {
+    const timeline = WheelFortune.gsap.timeline({ paused: true });
 
-    const { stopSegment, callback } = this.spinStates[this.currentSpinIndex];
-    const { fullCircle, wheelTurn, rotation } = this.calculate(stopSegment);
-
-    this.tlSpin = WheelFortune.gsap.timeline({ paused: true });
-    this.tlBlackout = WheelFortune.gsap.timeline({ paused: true });
-
-    const spinBegin = () => {
-      WheelFortune.gsap.to(this.containerEl, {
-        '--blurring': '40px',
-        duration: 1,
-        delay: 0.25,
-        ease: 'circ.in',
-      });
-
-      this.containerEl.classList.add('is-spinning');
-    };
-
-    const spinProcess = () => {
-      WheelFortune.gsap.to(this.containerEl, {
-        '--blurring': '0px',
-        duration: 1,
-        delay: 0.5,
-        ease: 'power2.out',
-      });
-    };
-
-    const spinEnd = () => {
-      this.currentSpinIndex += 1;
-      this.containerEl.classList.remove('is-spinning');
-
-      if (this.currentSpinIndex >= this.spinStates.length) {
-        this.containerEl.classList.add('end-last-spin');
-      }
-    };
-
-    this.tlSpin
+    timeline
       .to(this.segmentsEl, {
         clearProps: 'rotation',
         ease: 'power2.in',
         rotation: `+=${wheelTurn}`,
         duration: 1.5,
-        onStart: spinBegin,
+        onStart: () => {
+          WheelFortune.gsap.to(this.containerEl, {
+            '--blurring': '40px',
+            duration: 1,
+            delay: 0.25,
+            ease: 'circ.in',
+          });
+
+          this.containerEl.classList.add('is-spinning');
+        },
       })
       .to(this.segmentsEl, {
         clearProps: 'rotation',
@@ -133,13 +118,17 @@ class WheelFortune {
         repeat: this.rotationCount,
       })
       .to(this.segmentsEl, {
-        ease: WheelFortune.customEase.create(
-          'custom',
-          'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1',
-        ),
+        ease: WheelFortune.customEase.create('custom', 'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1'),
         rotation: `+=${rotation}`,
         duration: 3,
-        onStart: spinProcess,
+        onStart: () => {
+          WheelFortune.gsap.to(this.containerEl, {
+            '--blurring': '0px',
+            duration: 1,
+            delay: 0.5,
+            ease: 'power2.out',
+          });
+        },
         onComplete: () => {
           if (callback) callback();
 
@@ -147,7 +136,13 @@ class WheelFortune {
         },
       });
 
-    this.tlBlackout
+    return timeline;
+  }
+
+  private createBlackoutTimeline() {
+    const timeline = WheelFortune.gsap.timeline({ paused: true });
+
+    timeline
       .to(this.containerEl, {
         '--blackout-opacity': '0.6',
         duration: 0.5,
@@ -157,8 +152,38 @@ class WheelFortune {
         '--blackout-opacity': '0',
         duration: 0.5,
         ease: 'power2.out',
-        onComplete: spinEnd,
+        onComplete: () => {
+          this.currentSpinIndex += 1;
+          this.containerEl.classList.remove('is-spinning');
+
+          if (this.currentSpinIndex >= this.spinStates.length) {
+            this.containerEl.classList.add('end-last-spin');
+          }
+        },
       }, '<2');
+
+    return timeline;
+  }
+
+  public spin() {
+    if (this.tlLibration) {
+      this.tlLibration.kill();
+      this.tlLibration = null;
+    }
+
+    if (!this.spinStates.length) {
+      return;
+    }
+
+    if (this.currentSpinIndex >= this.spinStates.length) {
+      return;
+    }
+
+    const { stopSegment, callback } = this.spinStates[this.currentSpinIndex];
+    const { fullCircle, wheelTurn, rotation } = this.calculate(stopSegment);
+
+    this.tlSpin = this.createSpinTimeline(wheelTurn, fullCircle, rotation, callback);
+    this.tlBlackout = this.createBlackoutTimeline();
 
     this.tlSpin.restart();
   }
@@ -192,8 +217,9 @@ class WheelFortune {
 
   public init() {
     this.spinAction();
+
     this.containerEl.style.setProperty('--blackout-opacity', '0');
-    this.containerEl.style.setProperty('--blackout-angle', this.segmentCount.toString());
+    this.containerEl.style.setProperty('--blackout-angle', `${this.segmentCount}`);
 
     if (this.wheelLibration) {
       this.libration();
@@ -202,7 +228,6 @@ class WheelFortune {
 
   public destroy() {
     WheelFortune.gsap.killTweensOf([this.containerEl, this.segmentsEl]);
-
     this.buttonEl.onclick = null;
   }
 }
