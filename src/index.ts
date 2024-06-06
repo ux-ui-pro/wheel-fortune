@@ -13,6 +13,40 @@ interface WheelFortuneConfig {
   wheelLibration?: boolean;
 }
 
+interface GSAPAnimationVars {
+  clearProps?: string;
+  ease?: string | object;
+  rotation?: string | number;
+  duration?: number;
+  delay?: number;
+  repeat?: number;
+  yoyo?: boolean;
+  onStart?: () => void;
+  onComplete?: () => void;
+  '--blurring'?: string;
+  '--blackout-opacity'?: string;
+  rotate?: number;
+}
+
+interface GSAPTimeline {
+  paused?: boolean;
+  to: (element: HTMLElement, vars: GSAPAnimationVars) => GSAPTimeline;
+  fromTo: (element: HTMLElement, fromVars: GSAPAnimationVars, toVars: GSAPAnimationVars) => GSAPTimeline;
+  set: (element: HTMLElement, vars: GSAPAnimationVars) => GSAPTimeline;
+  restart: () => void;
+  kill: () => void;
+}
+
+interface GSAP {
+  timeline: (vars?: Record<string, unknown>) => GSAPTimeline;
+  to: (element: HTMLElement, vars: GSAPAnimationVars) => void;
+  killTweensOf: (elements: HTMLElement | HTMLElement[]) => void;
+}
+
+interface CustomEase {
+  create: (name: string, ease: string) => object;
+}
+
 class WheelFortune {
   private readonly containerEl: HTMLElement;
 
@@ -28,17 +62,17 @@ class WheelFortune {
 
   private currentSpinIndex: number;
 
-  private tlSpin: never;
+  private tlSpin: GSAPTimeline | null;
 
-  private tlBlackout: never;
+  private tlBlackout: GSAPTimeline | null;
 
   private readonly wheelLibration: boolean;
 
-  private tlLibration: never;
+  private tlLibration: GSAPTimeline | null;
 
-  static gsap: never;
+  static gsap: GSAP | null = null;
 
-  static customEase: never;
+  static customEase: CustomEase | null = null;
 
   constructor({
     containerEl = '.wheel',
@@ -49,7 +83,7 @@ class WheelFortune {
     spinStates = [],
     wheelLibration = false,
   }: WheelFortuneConfig = {}) {
-    if (!WheelFortune.gsap) {
+    if (!WheelFortune.gsap || !WheelFortune.customEase) {
       throw new Error('GSAP is not registered. Please call WheelFortune.registerGSAP() first.');
     }
 
@@ -58,6 +92,9 @@ class WheelFortune {
     this.spinStates = spinStates;
     this.currentSpinIndex = 0;
     this.wheelLibration = wheelLibration;
+    this.tlSpin = null;
+    this.tlBlackout = null;
+    this.tlLibration = null;
 
     const getElement = (el: HTMLElement | string): HTMLElement => {
       if (el instanceof HTMLElement) return el;
@@ -76,7 +113,7 @@ class WheelFortune {
     this.buttonEl = getElement(buttonEl);
   }
 
-  static registerGSAP(gsapInstance: never, customEase: never) {
+  static registerGSAP(gsapInstance: GSAP, customEase: CustomEase) {
     WheelFortune.gsap = gsapInstance;
     WheelFortune.customEase = customEase;
   }
@@ -90,8 +127,8 @@ class WheelFortune {
     return { fullCircle, wheelTurn, rotation };
   }
 
-  private createSpinTimeline(wheelTurn: number, fullCircle: number, rotation: number, callback?: () => void) {
-    const timeline = WheelFortune.gsap.timeline({ paused: true });
+  private createSpinTimeline(wheelTurn: number, fullCircle: number, rotation: number, callback?: () => void): GSAPTimeline {
+    const timeline = WheelFortune.gsap!.timeline({ paused: true });
 
     timeline
       .to(this.segmentsEl, {
@@ -100,14 +137,14 @@ class WheelFortune {
         rotation: `+=${wheelTurn}`,
         duration: 1.5,
         onStart: () => {
-          WheelFortune.gsap.to(this.containerEl, {
-            '--blurring': '40px',
-            duration: 1,
-            delay: 0.25,
-            ease: 'circ.in',
-          });
+            WheelFortune.gsap!.to(this.containerEl, {
+              '--blurring': '40px',
+              duration: 1,
+              delay: 0.25,
+              ease: 'circ.in',
+            });
 
-          this.containerEl.classList.add('is-spinning');
+            this.containerEl.classList.add('is-spinning');
         },
       })
       .to(this.segmentsEl, {
@@ -118,29 +155,29 @@ class WheelFortune {
         repeat: this.rotationCount,
       })
       .to(this.segmentsEl, {
-        ease: WheelFortune.customEase.create('custom', 'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1'),
+        ease: WheelFortune.customEase!.create('custom', 'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1'),
         rotation: `+=${rotation}`,
         duration: 3,
         onStart: () => {
-          WheelFortune.gsap.to(this.containerEl, {
-            '--blurring': '0px',
-            duration: 1,
-            delay: 0.5,
-            ease: 'power2.out',
-          });
+            WheelFortune.gsap!.to(this.containerEl, {
+              '--blurring': '0px',
+              duration: 1,
+              delay: 0.5,
+              ease: 'power2.out',
+            });
         },
         onComplete: () => {
           if (callback) callback();
 
-          this.tlBlackout.restart();
+            this.tlBlackout!.restart();
         },
       });
 
     return timeline;
   }
 
-  private createBlackoutTimeline() {
-    const timeline = WheelFortune.gsap.timeline({ paused: true });
+  private createBlackoutTimeline(): GSAPTimeline {
+    const timeline = WheelFortune.gsap!.timeline({ paused: true });
 
     timeline
       .to(this.containerEl, {
@@ -160,7 +197,7 @@ class WheelFortune {
             this.containerEl.classList.add('end-last-spin');
           }
         },
-      }, '<2');
+      });
 
     return timeline;
   }
@@ -189,7 +226,7 @@ class WheelFortune {
   }
 
   private libration() {
-    this.tlLibration = WheelFortune.gsap.timeline();
+    this.tlLibration = WheelFortune.gsap!.timeline();
 
     this.tlLibration
       .set(this.segmentsEl, {
@@ -227,7 +264,7 @@ class WheelFortune {
   }
 
   public destroy() {
-    WheelFortune.gsap.killTweensOf([this.containerEl, this.segmentsEl]);
+    WheelFortune.gsap!.killTweensOf([this.containerEl, this.segmentsEl]);
     this.buttonEl.onclick = null;
   }
 }

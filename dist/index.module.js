@@ -10,15 +10,18 @@ class $643fcf18b2d2e76f$var$WheelFortune {
     tlBlackout;
     wheelLibration;
     tlLibration;
-    static gsap;
-    static customEase;
+    static gsap = null;
+    static customEase = null;
     constructor({ containerEl: containerEl = ".wheel", segmentsEl: segmentsEl = ".wheel__segments", buttonEl: buttonEl = ".wheel__button", rotationCount: rotationCount = 3, segmentCount: segmentCount = 8, spinStates: spinStates = [], wheelLibration: wheelLibration = false } = {}){
-        if (!$643fcf18b2d2e76f$var$WheelFortune.gsap) throw new Error("GSAP is not registered. Please call WheelFortune.registerGSAP() first.");
+        if (!$643fcf18b2d2e76f$var$WheelFortune.gsap || !$643fcf18b2d2e76f$var$WheelFortune.customEase) throw new Error("GSAP is not registered. Please call WheelFortune.registerGSAP() first.");
         this.rotationCount = rotationCount;
         this.segmentCount = segmentCount;
         this.spinStates = spinStates;
         this.currentSpinIndex = 0;
         this.wheelLibration = wheelLibration;
+        this.tlSpin = null;
+        this.tlBlackout = null;
+        this.tlLibration = null;
         const getElement = (el)=>{
             if (el instanceof HTMLElement) return el;
             const element = document.querySelector(el);
@@ -104,7 +107,7 @@ class $643fcf18b2d2e76f$var$WheelFortune {
                 this.containerEl.classList.remove("is-spinning");
                 if (this.currentSpinIndex >= this.spinStates.length) this.containerEl.classList.add("end-last-spin");
             }
-        }, "<2");
+        });
         return timeline;
     }
     spin() {
