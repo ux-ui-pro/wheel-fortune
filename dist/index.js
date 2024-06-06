@@ -108,12 +108,13 @@ class $a196c1ed25598f0e$var$WheelFortune {
         });
         timeline.to(this.containerEl, {
             "--blackout-opacity": "0.6",
-            duration: 0.5,
-            ease: "power2.in"
+            duration: 0.75,
+            ease: "power3.out"
         }).to(this.containerEl, {
             "--blackout-opacity": "0",
-            duration: 0.5,
-            ease: "power2.out",
+            delay: 1.5,
+            duration: 0.75,
+            ease: "power3.out",
             onComplete: ()=>{
                 this.currentSpinIndex += 1;
                 this.containerEl.classList.remove("is-spinning");

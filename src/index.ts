@@ -137,14 +137,14 @@ class WheelFortune {
         rotation: `+=${wheelTurn}`,
         duration: 1.5,
         onStart: () => {
-            WheelFortune.gsap!.to(this.containerEl, {
-              '--blurring': '40px',
-              duration: 1,
-              delay: 0.25,
-              ease: 'circ.in',
-            });
+          WheelFortune.gsap!.to(this.containerEl, {
+            '--blurring': '40px',
+            duration: 1,
+            delay: 0.25,
+            ease: 'circ.in',
+          });
 
-            this.containerEl.classList.add('is-spinning');
+          this.containerEl.classList.add('is-spinning');
         },
       })
       .to(this.segmentsEl, {
@@ -159,17 +159,17 @@ class WheelFortune {
         rotation: `+=${rotation}`,
         duration: 3,
         onStart: () => {
-            WheelFortune.gsap!.to(this.containerEl, {
-              '--blurring': '0px',
-              duration: 1,
-              delay: 0.5,
-              ease: 'power2.out',
-            });
+          WheelFortune.gsap!.to(this.containerEl, {
+            '--blurring': '0px',
+            duration: 1,
+            delay: 0.5,
+            ease: 'power2.out',
+          });
         },
         onComplete: () => {
           if (callback) callback();
 
-            this.tlBlackout!.restart();
+          this.tlBlackout!.restart();
         },
       });
 
@@ -182,13 +182,14 @@ class WheelFortune {
     timeline
       .to(this.containerEl, {
         '--blackout-opacity': '0.6',
-        duration: 0.5,
-        ease: 'power2.in',
+        duration: 0.75,
+        ease: 'power3.out',
       })
       .to(this.containerEl, {
         '--blackout-opacity': '0',
-        duration: 0.5,
-        ease: 'power2.out',
+        delay: 1.5,
+        duration: 0.75,
+        ease: 'power3.out',
         onComplete: () => {
           this.currentSpinIndex += 1;
           this.containerEl.classList.remove('is-spinning');
@@ -265,6 +266,7 @@ class WheelFortune {
 
   public destroy() {
     WheelFortune.gsap!.killTweensOf([this.containerEl, this.segmentsEl]);
+
     this.buttonEl.onclick = null;
   }
 }
