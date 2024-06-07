@@ -100,7 +100,6 @@ class WheelFortune {
       if (el instanceof HTMLElement) return el;
 
       const element = document.querySelector(el);
-
       if (!element) {
         throw new Error(`Element ${el} not found`);
       }
@@ -137,14 +136,13 @@ class WheelFortune {
         rotation: `+=${wheelTurn}`,
         duration: 1.5,
         onStart: () => {
-          WheelFortune.gsap!.to(this.containerEl, {
-            '--blurring': '40px',
-            duration: 1,
-            delay: 0.25,
-            ease: 'circ.in',
-          });
-
-          this.containerEl.classList.add('is-spinning');
+            WheelFortune.gsap!.to(this.containerEl, {
+              '--blurring': '40px',
+              duration: 1,
+              delay: 0.25,
+              ease: 'circ.in',
+            });
+            this.containerEl.classList.add('is-spinning');
         },
       })
       .to(this.segmentsEl, {
@@ -159,17 +157,16 @@ class WheelFortune {
         rotation: `+=${rotation}`,
         duration: 3,
         onStart: () => {
-          WheelFortune.gsap!.to(this.containerEl, {
-            '--blurring': '0px',
-            duration: 1,
-            delay: 0.5,
-            ease: 'power2.out',
-          });
+            WheelFortune.gsap!.to(this.containerEl, {
+              '--blurring': '0px',
+              duration: 1,
+              delay: 0.5,
+              ease: 'power2.out',
+            });
         },
         onComplete: () => {
           if (callback) callback();
-
-          this.tlBlackout!.restart();
+            this.tlBlackout!.restart();
         },
       });
 
@@ -266,7 +263,6 @@ class WheelFortune {
 
   public destroy() {
     WheelFortune.gsap!.killTweensOf([this.containerEl, this.segmentsEl]);
-
     this.buttonEl.onclick = null;
   }
 }
