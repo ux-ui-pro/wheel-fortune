@@ -42,14 +42,18 @@ class WheelFortune {
     this.#currentSpinIndex = 0;
     this.#wheelLibration = wheelLibration;
 
-    this.#containerEl = document.querySelector(containerEl);
-    this.#segmentsEl = document.querySelector(segmentsEl);
-    this.#buttonEl = document.querySelector(buttonEl);
+    this.#containerEl = WheelFortune.#getElement(containerEl);
+    this.#segmentsEl = WheelFortune.#getElement(segmentsEl);
+    this.#buttonEl = WheelFortune.#getElement(buttonEl);
   }
 
   static registerGSAP(gsap, customEase) {
     WheelFortune.gsap = gsap;
     WheelFortune.customEase = customEase;
+  }
+
+  static #getElement(el) {
+    return el instanceof HTMLElement ? el : document.querySelector(el);
   }
 
   #calculate = (stopSegment) => {

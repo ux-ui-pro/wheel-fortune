@@ -19,13 +19,16 @@ class $c38b013c361dbfdf$var$WheelFortune {
         this.#spinStates = spinStates;
         this.#currentSpinIndex = 0;
         this.#wheelLibration = wheelLibration;
-        this.#containerEl = document.querySelector(containerEl);
-        this.#segmentsEl = document.querySelector(segmentsEl);
-        this.#buttonEl = document.querySelector(buttonEl);
+        this.#containerEl = $c38b013c361dbfdf$var$WheelFortune.#getElement(containerEl);
+        this.#segmentsEl = $c38b013c361dbfdf$var$WheelFortune.#getElement(segmentsEl);
+        this.#buttonEl = $c38b013c361dbfdf$var$WheelFortune.#getElement(buttonEl);
     }
     static registerGSAP(gsap, customEase) {
         $c38b013c361dbfdf$var$WheelFortune.gsap = gsap;
         $c38b013c361dbfdf$var$WheelFortune.customEase = customEase;
+    }
+    static #getElement(el) {
+        return el instanceof HTMLElement ? el : document.querySelector(el);
     }
     #calculate = (stopSegment)=>{
         const fullCircle = 360;
