@@ -18,24 +18,18 @@
 
 &#10148; **Install**
 ```console
-$ yarn add gsap
 $ yarn add wheel-fortune
 ```
 <br>
 
 &#10148; **Import**
 ```javascript
-import gsap from 'gsap';
-import CustomEase from 'gsap/CustomEase';
 import WheelFortune from 'wheel-fortune';
 ```
 <br>
 
 &#10148; **Usage**
 ```javascript
-gsap.registerPlugin(CustomEase);
-WheelFortune.registerGSAP(gsap, CustomEase);
-
 const spinStates = [
   { stopSegment: 5, callback: () => console.log('first spin end') },
   { stopSegment: 2, callback: () => console.log('second spin end') },
