@@ -1,7 +1,9 @@
 import globals from 'globals';
-import prettierPlugin from 'eslint-plugin-prettier';
+import eslintPlugin from '@eslint/js';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
+import prettierConfig from 'eslint-config-prettier';
+import importPlugin from 'eslint-plugin-import';
 
 /** @type {import("eslint").Linter.FlatConfig[]} */
 export default [
@@ -18,16 +20,32 @@ export default [
         ...globals.browser,
         ...globals.es2022,
       },
+      parserOptions: {
+        project: './tsconfig.json',
+        allowJs: true,
+      },
     },
     plugins: {
       '@typescript-eslint': typescriptPlugin,
-      prettier: prettierPlugin,
+      eslint: eslintPlugin,
+      import: importPlugin,
     },
     rules: {
+      ...eslintPlugin.configs.recommended.rules,
+      ...typescriptPlugin.configs.recommended.rules,
+      ...typescriptPlugin.configs['recommended-requiring-type-checking'].rules,
       '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/explicit-function-return-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
-      'prettier/prettier': 'error',
+      'import/order': [
+        'error',
+        {
+          groups: [['builtin', 'external', 'internal']],
+          'newlines-between': 'always',
+        },
+      ],
+      'import/no-unresolved': 'error',
+      'import/no-duplicates': 'error',
       'max-len': [
         'error',
         {
@@ -38,6 +56,8 @@ export default [
           ignoreComments: true,
         },
       ],
+      'linebreak-style': ['error', 'unix'],
     },
   },
+  prettierConfig,
 ];

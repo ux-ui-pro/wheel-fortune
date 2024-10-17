@@ -1,6 +1,6 @@
 {
   "name": "wheel-fortune",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "WheelFortune implements an animation of a spinning wheel of fortune using the GSAP library. It allows customization of parameters including the number of segments, number of revolutions, spin states, and callbacks.",
   "author": "ux-ui.pro",
   "license": "MIT",
@@ -17,8 +17,9 @@
     "clean": "rm -rf dist .parcel-cache",
     "build": "yarn clean && parcel build",
     "lint": "eslint **/*.{ts,tsx,js,jsx}",
-    "prettier": "prettier --write **/*.{ts,tsx,js,jsx}",
-    "lintfix": "yarn lint --fix && yarn prettier"
+    "lint:fix": "eslint **/*.{ts,tsx,js,jsx} --fix",
+    "prettier:fix": "prettier --write **/*.{ts,tsx,js,jsx}",
+    "lint:fix:all": "yarn lint:fix && yarn prettier:fix"
   },
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "source": "src/index.ts",
@@ -26,12 +27,14 @@
   "module": "dist/index.module.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
+    "@eslint/js": "^9.12.0",
     "@parcel/packager-ts": "^2.12.0",
     "@parcel/transformer-typescript-types": "^2.12.0",
     "@typescript-eslint/eslint-plugin": "^8.9.0",
     "@typescript-eslint/parser": "^8.9.0",
     "eslint": "^9.12.0",
-    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
     "globals": "^15.11.0",
     "parcel": "^2.12.0",
     "prettier": "^3.3.3",

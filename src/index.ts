@@ -1,7 +1,13 @@
 import gsap from 'gsap';
 import CustomEase from 'gsap/CustomEase';
 
-gsap.registerPlugin(CustomEase);
+gsap.registerPlugin(CustomEase as gsap.Plugin);
+
+enum WheelState {
+  Idle,
+  Spinning,
+  Librating,
+}
 
 interface SpinState {
   stopSegment: number;
@@ -16,24 +22,23 @@ interface WheelFortuneOptions {
   segmentCount?: number;
   spinStates?: SpinState[];
   wheelLibration?: boolean;
+  customCSSVariables?: Record<string, string>;
 }
 
 class WheelFortune {
-  private static gsapInstance: typeof gsap = gsap;
-  private static customEaseInstance: typeof CustomEase = CustomEase;
-
   private containerEl: HTMLElement;
   private segmentsEl: HTMLElement;
   private buttonEl: HTMLElement;
-
   private rotationCount: number;
   private segmentCount: number;
   private spinStates: SpinState[];
   private currentSpinIndex: number;
-  private tlSpin?: GSAPTimeline;
-  private tlBlackout?: GSAPTimeline;
+  private tlSpin?: gsap.core.Timeline;
+  private tlBlackout?: gsap.core.Timeline;
   private wheelLibration: boolean;
-  private tlLibration?: GSAPTimeline;
+  private tlLibration?: gsap.core.Timeline;
+  private spinHandler: () => void;
+  private state: WheelState;
 
   constructor({
     containerEl = '.wheel',
@@ -43,20 +48,38 @@ class WheelFortune {
     segmentCount = 8,
     spinStates = [],
     wheelLibration = false,
+    customCSSVariables = {},
   }: WheelFortuneOptions = {}) {
     this.rotationCount = rotationCount;
     this.segmentCount = segmentCount;
-    this.spinStates = spinStates;
+    this.spinStates = spinStates ?? [];
     this.currentSpinIndex = 0;
     this.wheelLibration = wheelLibration;
+    this.state = WheelState.Idle;
 
     this.containerEl = WheelFortune.getElement(containerEl);
     this.segmentsEl = WheelFortune.getElement(segmentsEl);
     this.buttonEl = WheelFortune.getElement(buttonEl);
+
+    this.spinHandler = this.spin.bind(this);
+
+    for (const [key, value] of Object.entries(customCSSVariables)) {
+      this.containerEl.style.setProperty(`--${key}`, value);
+    }
   }
 
   private static getElement(el: HTMLElement | string): HTMLElement {
-    return typeof el === 'string' ? (document.querySelector(el) as HTMLElement) : el;
+    if (typeof el === 'string') {
+      const element = document.querySelector(el);
+
+      if (!element) {
+        throw new Error(`Element not found: ${el}`);
+      }
+
+      return element as HTMLElement;
+    }
+
+    return el;
   }
 
   private calculate(stopSegment: number): {
@@ -73,18 +96,19 @@ class WheelFortune {
   }
 
   private spinBegin(): void {
-    WheelFortune.gsapInstance.to(this.containerEl, {
+    this.state = WheelState.Spinning;
+    this.containerEl.classList.add('is-spinning');
+
+    gsap.to(this.containerEl, {
       '--blurring': '40px',
       duration: 1,
       delay: 0.25,
       ease: 'circ.in',
     });
-
-    this.containerEl.classList.add('is-spinning');
   }
 
   private spinProcess(): void {
-    WheelFortune.gsapInstance.to(this.containerEl, {
+    gsap.to(this.containerEl, {
       '--blurring': '0px',
       duration: 1,
       delay: 0.5,
@@ -99,19 +123,31 @@ class WheelFortune {
     if (this.currentSpinIndex >= this.spinStates.length) {
       this.containerEl.classList.add('end-last-spin');
     }
+
+    this.state = WheelState.Idle;
   }
 
   public spin(): void {
+    if (this.state === WheelState.Spinning) {
+      return;
+    }
+
     if (this.tlLibration) {
       this.tlLibration.kill();
       this.tlLibration = undefined;
     }
 
-    const { stopSegment, callback } = this.spinStates[this.currentSpinIndex];
+    const spinState = this.spinStates?.[this.currentSpinIndex];
+
+    if (!spinState) {
+      return;
+    }
+
+    const { stopSegment, callback } = spinState;
     const { fullCircle, wheelTurn, rotation } = this.calculate(stopSegment);
 
-    this.tlSpin = WheelFortune.gsapInstance.timeline({ paused: true });
-    this.tlBlackout = WheelFortune.gsapInstance.timeline({ paused: true });
+    this.tlSpin = gsap.timeline({ paused: true });
+    this.tlBlackout = gsap.timeline({ paused: true });
 
     this.tlSpin
       .to(this.segmentsEl, {
@@ -129,15 +165,16 @@ class WheelFortune {
         repeat: this.rotationCount,
       })
       .to(this.segmentsEl, {
-        ease: WheelFortune.customEaseInstance.create(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        ease: CustomEase.create(
           'custom',
-          'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1'
-        ) as typeof CustomEase,
+          'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1',
+        ) as gsap.EaseFunction,
         rotation: `+=${rotation}`,
         duration: 3,
         onStart: () => this.spinProcess(),
         onComplete: () => {
-          if (callback) callback();
+          callback?.();
           this.tlBlackout?.restart();
         },
       });
@@ -156,14 +193,19 @@ class WheelFortune {
           ease: 'power2.out',
           onComplete: () => this.spinEnd(),
         },
-        '<2'
+        '<2',
       );
 
     this.tlSpin.restart();
   }
 
   private libration(): void {
-    this.tlLibration = WheelFortune.gsapInstance.timeline();
+    if (this.state === WheelState.Spinning) {
+      return;
+    }
+
+    this.state = WheelState.Librating;
+    this.tlLibration = gsap.timeline();
 
     this.tlLibration
       .set(this.segmentsEl, { rotate: 0 })
@@ -181,12 +223,12 @@ class WheelFortune {
           repeat: -1,
           yoyo: true,
           ease: 'power1.inOut',
-        }
+        },
       );
   }
 
   private spinAction(): void {
-    this.buttonEl.onclick = (): void => this.spin();
+    this.buttonEl.addEventListener('click', this.spinHandler);
   }
 
   public init(): void {
@@ -200,9 +242,8 @@ class WheelFortune {
   }
 
   public destroy(): void {
-    WheelFortune.gsapInstance.killTweensOf([this.containerEl, this.segmentsEl]);
-
-    this.buttonEl.onclick = null;
+    gsap.killTweensOf([this.containerEl, this.segmentsEl]);
+    this.buttonEl.removeEventListener('click', this.spinHandler);
   }
 }
 
