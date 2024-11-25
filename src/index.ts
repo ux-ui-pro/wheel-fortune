@@ -118,13 +118,18 @@ class WheelFortune {
 
   private spinEnd(): void {
     this.currentSpinIndex += 1;
-    this.containerEl.classList.remove('is-spinning');
 
     if (this.currentSpinIndex >= this.spinStates.length) {
       this.containerEl.classList.add('end-last-spin');
     }
 
     this.state = WheelState.Idle;
+
+    this.containerEl.classList.remove('is-spinning');
+
+    const spinState = this.spinStates?.[this.currentSpinIndex - 1];
+
+    spinState?.callback?.();
   }
 
   public spin(): void {
@@ -143,7 +148,7 @@ class WheelFortune {
       return;
     }
 
-    const { stopSegment, callback } = spinState;
+    const { stopSegment } = spinState;
     const { fullCircle, wheelTurn, rotation } = this.calculate(stopSegment);
 
     this.tlSpin = gsap.timeline({ paused: true });
@@ -174,7 +179,6 @@ class WheelFortune {
         duration: 3,
         onStart: () => this.spinProcess(),
         onComplete: () => {
-          callback?.();
           this.tlBlackout?.restart();
         },
       });
@@ -193,7 +197,7 @@ class WheelFortune {
           ease: 'power2.out',
           onComplete: () => this.spinEnd(),
         },
-        '<2',
+        '<1.5',
       );
 
     this.tlSpin.restart();
@@ -243,6 +247,7 @@ class WheelFortune {
 
   public destroy(): void {
     gsap.killTweensOf([this.containerEl, this.segmentsEl]);
+
     this.buttonEl.removeEventListener('click', this.spinHandler);
   }
 }

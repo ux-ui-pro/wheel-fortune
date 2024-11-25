@@ -11,7 +11,7 @@ export default [
     ignores: ['node_modules', 'dist', '.parcel', '.parcel-cache'],
   },
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
+    files: ['**/*.ts'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

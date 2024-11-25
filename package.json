@@ -1,6 +1,6 @@
 {
   "name": "wheel-fortune",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "WheelFortune implements an animation of a spinning wheel of fortune using the GSAP library. It allows customization of parameters including the number of segments, number of revolutions, spin states, and callbacks.",
   "author": "ux-ui.pro",
   "license": "MIT",
@@ -16,10 +16,10 @@
   "scripts": {
     "clean": "rm -rf dist .parcel-cache",
     "build": "yarn clean && parcel build",
-    "lint": "eslint **/*.{ts,tsx,js,jsx}",
-    "lint:fix": "eslint **/*.{ts,tsx,js,jsx} --fix",
-    "prettier:fix": "prettier --write **/*.{ts,tsx,js,jsx}",
-    "lint:fix:all": "yarn lint:fix && yarn prettier:fix"
+    "lint:js": "eslint **/*.{ts,js}",
+    "lint:fix:js": "eslint **/*.{ts,js} --fix",
+    "format:js": "prettier --write **/*.{ts,js}",
+    "lint:fix": "yarn lint:fix:js && yarn format:js"
   },
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "source": "src/index.ts",
