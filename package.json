@@ -1,6 +1,6 @@
 {
   "name": "wheel-fortune",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "WheelFortune implements an animation of a spinning wheel of fortune using the GSAP library. It allows customization of parameters including the number of segments, number of revolutions, spin states, and callbacks.",
   "author": "ux-ui.pro",
   "license": "MIT",
@@ -12,10 +12,12 @@
     "url": "https://github.com/ux-ui-pro/wheel-fortune/issues"
   },
   "homepage": "https://github.com/ux-ui-pro/wheel-fortune",
-  "sideEffects": false,
+  "sideEffects": [
+    "*.js"
+  ],
   "scripts": {
-    "clean": "rm -rf dist .parcel-cache",
-    "build": "yarn clean && parcel build",
+    "clean": "rimraf dist",
+    "build": "vite build",
     "lint:js": "eslint **/*.{ts,js}",
     "lint:fix:js": "eslint **/*.{ts,js} --fix",
     "format:js": "prettier --write **/*.{ts,js}",
@@ -23,25 +25,35 @@
   },
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "source": "src/index.ts",
-  "main": "dist/index.js",
-  "module": "dist/index.module.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.es.js",
+    "require": "./dist/index.cjs.js"
+  },
+  "files": [
+    "dist/"
+  ],
   "devDependencies": {
-    "@eslint/js": "^9.12.0",
-    "@parcel/packager-ts": "^2.12.0",
-    "@parcel/transformer-typescript-types": "^2.12.0",
-    "@typescript-eslint/eslint-plugin": "^8.9.0",
-    "@typescript-eslint/parser": "^8.9.0",
-    "eslint": "^9.12.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.31.0",
-    "globals": "^15.11.0",
-    "parcel": "^2.12.0",
-    "prettier": "^3.3.3",
-    "typescript": "5.4.5"
+    "@eslint/js": "9.21.0",
+    "@rollup/plugin-terser": "0.4.4",
+    "@types/node": "22.13.8",
+    "@typescript-eslint/eslint-plugin": "8.25.0",
+    "@typescript-eslint/parser": "8.25.0",
+    "eslint": "9.18.0",
+    "eslint-config-prettier": "10.0.2",
+    "eslint-import-resolver-typescript": "3.8.3",
+    "eslint-plugin-import": "2.31.0",
+    "prettier": "3.5.2",
+    "typescript": "5.8.2",
+    "vite": "6.2.0",
+    "vite-plugin-dts": "4.5.1",
+    "rimraf": "6.0.1"
   },
   "dependencies": {
-    "gsap": "^3.12.5"
+    "gsap": "3.12.7"
   },
   "keywords": [
     "wheel of fortune",
