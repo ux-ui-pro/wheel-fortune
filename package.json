@@ -1,6 +1,6 @@
 {
   "name": "wheel-fortune",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "WheelFortune implements an animation of a spinning wheel of fortune using the GSAP library. It allows customization of parameters including the number of segments, number of revolutions, spin states, and callbacks.",
   "author": "ux-ui.pro",
   "license": "MIT",
@@ -26,9 +26,9 @@
   "source": "src/index.ts",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
+  "browser": "./dist/index.umd.js",
   "types": "dist/index.d.ts",
   "exports": {
-    "types": "./dist/index.d.ts",
     "import": "./dist/index.es.js",
     "require": "./dist/index.cjs.js"
   },
