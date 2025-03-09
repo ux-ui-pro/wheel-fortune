@@ -1,6 +1,6 @@
 {
   "name": "wheel-fortune",
-  "version": "2.5.1",
+  "version": "3.0.0",
   "description": "WheelFortune implements an animation of a spinning wheel of fortune using the GSAP library. It allows customization of parameters including the number of segments, number of revolutions, spin states, and callbacks.",
   "author": "ux-ui.pro",
   "license": "MIT",
@@ -52,9 +52,7 @@
     "rimraf": "6.0.1",
     "typescript": "5.8.2",
     "vite": "6.2.1",
-    "vite-plugin-dts": "4.5.3"
-  },
-  "dependencies": {
+    "vite-plugin-dts": "4.5.3",
     "gsap": "3.12.7"
   },
   "keywords": [

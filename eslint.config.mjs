@@ -58,6 +58,8 @@ export default [
         project: './tsconfig.json',
       },
       globals: {
+        gsap: 'readonly',
+        CustomEase: 'readonly',
         ...globals.browser,
         ...globals.es2022,
       },

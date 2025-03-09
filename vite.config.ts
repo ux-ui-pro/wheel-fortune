@@ -20,6 +20,7 @@ export default defineConfig({
     },
     emptyOutDir: true,
     rollupOptions: {
+      external: ['gsap', 'gsap/CustomEase'],
       plugins: [
         terser({
           compress: {
@@ -39,6 +40,10 @@ export default defineConfig({
         }),
       ],
       output: {
+        globals: {
+          gsap: 'gsap',
+          'gsap/CustomEase': 'CustomEase',
+        },
         assetFileNames: 'index.[ext]',
       },
     },

@@ -1,7 +1,9 @@
-import gsap from 'gsap';
-import CustomEase from 'gsap/CustomEase';
+import { gsap } from 'gsap';
+import { CustomEase } from 'gsap/CustomEase';
 
-gsap.registerPlugin(CustomEase as gsap.Plugin);
+interface ICustomEase {
+  create(name: string, data: string): gsap.EaseFunction;
+}
 
 enum WheelState {
   Idle,
@@ -9,12 +11,12 @@ enum WheelState {
   Librating,
 }
 
-interface SpinState {
+export interface SpinState {
   stopSegment: number;
   callback?: () => void;
 }
 
-interface WheelFortuneOptions {
+export interface WheelFortuneOptions {
   containerEl?: HTMLElement | string;
   segmentsEl?: HTMLElement | string;
   buttonEl?: HTMLElement | string;
@@ -25,20 +27,26 @@ interface WheelFortuneOptions {
   customCSSVariables?: Record<string, string>;
 }
 
-class WheelFortune {
+export default class WheelFortune {
+  private static _gsap: typeof gsap = gsap;
+  private static _CustomEase: ICustomEase = CustomEase as unknown as ICustomEase;
+
   private containerEl: HTMLElement;
   private segmentsEl: HTMLElement;
   private buttonEl: HTMLElement;
+
   private rotationCount: number;
   private segmentCount: number;
   private spinStates: SpinState[];
   private currentSpinIndex: number;
+  private wheelLibration: boolean;
+  private state: WheelState;
+
   private tlSpin?: gsap.core.Timeline;
   private tlBlackout?: gsap.core.Timeline;
-  private wheelLibration: boolean;
   private tlLibration?: gsap.core.Timeline;
+
   private spinHandler: () => void;
-  private state: WheelState;
 
   constructor({
     containerEl = '.wheel',
@@ -60,7 +68,6 @@ class WheelFortune {
     this.containerEl = WheelFortune.getElement(containerEl);
     this.segmentsEl = WheelFortune.getElement(segmentsEl);
     this.buttonEl = WheelFortune.getElement(buttonEl);
-
     this.spinHandler = this.spin.bind(this);
 
     for (const [key, value] of Object.entries(customCSSVariables)) {
@@ -70,13 +77,13 @@ class WheelFortune {
 
   private static getElement(el: HTMLElement | string): HTMLElement {
     if (typeof el === 'string') {
-      const element = document.querySelector(el);
+      const found = document.querySelector<HTMLElement>(el);
 
-      if (!element) {
+      if (!found) {
         throw new Error(`Element not found: ${el}`);
       }
 
-      return element as HTMLElement;
+      return found;
     }
 
     return el;
@@ -99,7 +106,7 @@ class WheelFortune {
     this.state = WheelState.Spinning;
     this.containerEl.classList.add('is-spinning');
 
-    gsap.to(this.containerEl, {
+    WheelFortune._gsap.to(this.containerEl, {
       '--blurring': '40px',
       duration: 1,
       delay: 0.25,
@@ -108,7 +115,7 @@ class WheelFortune {
   }
 
   private spinProcess(): void {
-    gsap.to(this.containerEl, {
+    WheelFortune._gsap.to(this.containerEl, {
       '--blurring': '0px',
       duration: 1,
       delay: 0.5,
@@ -124,10 +131,9 @@ class WheelFortune {
     }
 
     this.state = WheelState.Idle;
-
     this.containerEl.classList.remove('is-spinning');
 
-    const spinState = this.spinStates?.[this.currentSpinIndex - 1];
+    const spinState = this.spinStates[this.currentSpinIndex - 1];
 
     spinState?.callback?.();
   }
@@ -142,7 +148,7 @@ class WheelFortune {
       this.tlLibration = undefined;
     }
 
-    const spinState = this.spinStates?.[this.currentSpinIndex];
+    const spinState = this.spinStates[this.currentSpinIndex];
 
     if (!spinState) {
       return;
@@ -151,8 +157,8 @@ class WheelFortune {
     const { stopSegment } = spinState;
     const { fullCircle, wheelTurn, rotation } = this.calculate(stopSegment);
 
-    this.tlSpin = gsap.timeline({ paused: true });
-    this.tlBlackout = gsap.timeline({ paused: true });
+    this.tlSpin = WheelFortune._gsap.timeline({ paused: true });
+    this.tlBlackout = WheelFortune._gsap.timeline({ paused: true });
 
     this.tlSpin
       .to(this.segmentsEl, {
@@ -170,11 +176,10 @@ class WheelFortune {
         repeat: this.rotationCount,
       })
       .to(this.segmentsEl, {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        ease: CustomEase.create(
+        ease: WheelFortune._CustomEase.create(
           'custom',
           'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1',
-        ) as gsap.EaseFunction,
+        ),
         rotation: `+=${rotation}`,
         duration: 3,
         onStart: () => this.spinProcess(),
@@ -209,7 +214,7 @@ class WheelFortune {
     }
 
     this.state = WheelState.Librating;
-    this.tlLibration = gsap.timeline();
+    this.tlLibration = WheelFortune._gsap.timeline();
 
     this.tlLibration
       .set(this.segmentsEl, { rotate: 0 })
@@ -246,10 +251,8 @@ class WheelFortune {
   }
 
   public destroy(): void {
-    gsap.killTweensOf([this.containerEl, this.segmentsEl]);
+    WheelFortune._gsap.killTweensOf([this.containerEl, this.segmentsEl]);
 
     this.buttonEl.removeEventListener('click', this.spinHandler);
   }
 }
-
-export default WheelFortune;
