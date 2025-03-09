@@ -8,7 +8,7 @@ import importPlugin from 'eslint-plugin-import';
 /** @type {import("eslint").Linter.FlatConfig[]} */
 export default [
   {
-    ignores: ['node_modules', 'dist'],
+    ignores: ['dist/**', 'node_modules/**'],
   },
   {
     files: ['**/*.js'],

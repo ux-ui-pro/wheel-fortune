@@ -18,13 +18,8 @@ export default defineConfig({
       formats: ['es', 'cjs', 'umd'],
       fileName: (format) => `index.${format}.js`,
     },
+    emptyOutDir: true,
     rollupOptions: {
-      external: ['gsap'],
-      output: {
-        globals: {
-          gsap: 'gsap',
-        },
-      },
       plugins: [
         terser({
           compress: {
@@ -43,6 +38,9 @@ export default defineConfig({
           },
         }),
       ],
+      output: {
+        assetFileNames: 'index.[ext]',
+      },
     },
   },
   server: {
