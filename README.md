@@ -26,10 +26,7 @@ $ yarn add wheel-fortune
 &#10148; **Import**
 ```javascript
 import { gsap } from 'gsap';
-import { CustomEase } from 'gsap/CustomEase';
 import WheelFortune from 'wheel-fortune';
-
-gsap.registerPlugin(CustomEase);
 ```
 <br>
 

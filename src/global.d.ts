@@ -1,9 +1,8 @@
-import type { gsap as GSAPNamespace, CustomEase as CustomEaseNamespace } from 'gsap';
+import type { gsap as GSAPNamespace } from 'gsap';
 
 declare global {
   interface Window {
     gsap?: typeof GSAPNamespace;
-    CustomEase?: typeof CustomEaseNamespace;
   }
 }
 

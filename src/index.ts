@@ -1,9 +1,4 @@
 import { gsap } from 'gsap';
-import { CustomEase } from 'gsap/CustomEase';
-
-interface ICustomEase {
-  create(name: string, data: string): gsap.EaseFunction;
-}
 
 enum WheelState {
   Idle,
@@ -29,7 +24,6 @@ export interface WheelFortuneOptions {
 
 export default class WheelFortune {
   private static _gsap: typeof gsap = gsap;
-  private static _CustomEase: ICustomEase = CustomEase as unknown as ICustomEase;
 
   private containerEl: HTMLElement;
   private segmentsEl: HTMLElement;
@@ -68,6 +62,7 @@ export default class WheelFortune {
     this.containerEl = WheelFortune.getElement(containerEl);
     this.segmentsEl = WheelFortune.getElement(segmentsEl);
     this.buttonEl = WheelFortune.getElement(buttonEl);
+
     this.spinHandler = this.spin.bind(this);
 
     for (const [key, value] of Object.entries(customCSSVariables)) {
@@ -107,8 +102,8 @@ export default class WheelFortune {
     this.containerEl.classList.add('is-spinning');
 
     WheelFortune._gsap.to(this.containerEl, {
-      '--blurring': '40px',
-      duration: 1,
+      '--blurring': '12px',
+      duration: 0.8,
       delay: 0.25,
       ease: 'circ.in',
     });
@@ -169,17 +164,12 @@ export default class WheelFortune {
         onStart: () => this.spinBegin(),
       })
       .to(this.segmentsEl, {
-        clearProps: 'rotation',
+        rotation: `+=${fullCircle * this.rotationCount}`,
+        duration: 0.15 * this.rotationCount,
         ease: 'none',
-        rotation: `+=${fullCircle}`,
-        duration: 0.15,
-        repeat: this.rotationCount,
       })
       .to(this.segmentsEl, {
-        ease: WheelFortune._CustomEase.create(
-          'custom',
-          'M0,0 C0.11,0.494 0.136,0.67 0.318,0.852 0.626,1.16 0.853,0.989 1,1',
-        ),
+        ease: 'back.out(1.2)',
         rotation: `+=${rotation}`,
         duration: 3,
         onStart: () => this.spinProcess(),
