@@ -1,248 +1,241 @@
-import { gsap } from 'gsap';
-
-enum WheelState {
-  Idle,
-  Spinning,
-  Librating,
-}
-
-export interface SpinState {
-  stopSegment: number;
+interface SpinState {
+  targetAngle: number;
   callback?: () => void;
 }
 
-export interface WheelFortuneOptions {
-  containerEl?: HTMLElement | string;
-  segmentsEl?: HTMLElement | string;
-  buttonEl?: HTMLElement | string;
+interface WheelFortuneOptions {
+  rootSelector: string;
+  wheelSelector: string;
+  triggerSelector: string;
   rotationCount?: number;
-  segmentCount?: number;
   spinStates?: SpinState[];
-  wheelLibration?: boolean;
-  customCSSVariables?: Record<string, string>;
+  duration?: number;
+  overshootDeg?: number;
+  returnDuration?: number;
+  swayOptions?: {
+    amplitude?: number;
+    period?: number;
+  };
 }
 
 export default class WheelFortune {
-  private static _gsap: typeof gsap = gsap;
+  #rootElement!: HTMLElement;
+  #wheelElement!: HTMLElement;
+  #triggerButton!: HTMLButtonElement;
 
-  private containerEl: HTMLElement;
-  private segmentsEl: HTMLElement;
-  private buttonEl: HTMLElement;
+  #swayAnimation: Animation | null = null;
+  #swayingElement: HTMLElement | null = null;
+  #finalRotation: WeakMap<HTMLElement, number> = new WeakMap();
 
-  private rotationCount: number;
-  private segmentCount: number;
-  private spinStates: SpinState[];
-  private currentSpinIndex: number;
-  private wheelLibration: boolean;
-  private state: WheelState;
+  readonly #rotationCount: number;
+  readonly #duration: number;
+  readonly #overshootDeg: number;
+  readonly #returnDuration: number;
+  readonly #swayAmplitude: number;
+  readonly #swayPeriod: number;
 
-  private tlSpin?: gsap.core.Timeline;
-  private tlBlackout?: gsap.core.Timeline;
-  private tlLibration?: gsap.core.Timeline;
+  readonly #rootClassName: string;
 
-  private spinHandler: () => void;
+  readonly #spinStates: SpinState[];
 
-  constructor({
-    containerEl = '.wheel',
-    segmentsEl = '.wheel__segments',
-    buttonEl = '.wheel__button',
-    rotationCount = 3,
-    segmentCount = 8,
-    spinStates = [],
-    wheelLibration = false,
-    customCSSVariables = {},
-  }: WheelFortuneOptions = {}) {
-    this.rotationCount = rotationCount;
-    this.segmentCount = segmentCount;
-    this.spinStates = spinStates ?? [];
-    this.currentSpinIndex = 0;
-    this.wheelLibration = wheelLibration;
-    this.state = WheelState.Idle;
+  #currentSpinIndex = 0;
+  #hasSpun = false;
 
-    this.containerEl = WheelFortune.getElement(containerEl);
-    this.segmentsEl = WheelFortune.getElement(segmentsEl);
-    this.buttonEl = WheelFortune.getElement(buttonEl);
+  #onClick: (e: MouseEvent) => void = () => {
+    void this.#runSpin();
+  };
 
-    this.spinHandler = this.spin.bind(this);
+  constructor(private readonly options: Readonly<WheelFortuneOptions>) {
+    this.#rotationCount = options.rotationCount ?? 6;
+    this.#duration = options.duration ?? 5000;
+    this.#overshootDeg = options.overshootDeg ?? 15;
+    this.#returnDuration = options.returnDuration ?? 1000;
+    this.#swayAmplitude = options.swayOptions?.amplitude ?? 6;
+    this.#swayPeriod = options.swayOptions?.period ?? 1500;
 
-    for (const [key, value] of Object.entries(customCSSVariables)) {
-      this.containerEl.style.setProperty(`--${key}`, value);
-    }
+    this.#spinStates = [...(options.spinStates ?? [])];
+
+    const selector = options.rootSelector.trim();
+    this.#rootClassName = selector.startsWith('.') ? selector.slice(1) : selector;
   }
 
-  private static getElement(el: HTMLElement | string): HTMLElement {
-    if (typeof el === 'string') {
-      const found = document.querySelector<HTMLElement>(el);
+  init(): void {
+    const root = document.querySelector<HTMLElement>(this.options.rootSelector);
 
-      if (!found) {
-        throw new Error(`Element not found: ${el}`);
-      }
+    if (!root) return;
 
-      return found;
-    }
+    const wheel = root.querySelector<HTMLElement>(this.options.wheelSelector);
+    const trigger = root.querySelector<HTMLButtonElement>(this.options.triggerSelector);
 
-    return el;
+    if (!wheel || !trigger) return;
+
+    this.#rootElement = root;
+    this.#wheelElement = wheel;
+    this.#triggerButton = trigger;
+
+    this.#triggerButton.addEventListener('click', this.#onClick);
+
+    this.#startSway(this.#wheelElement);
   }
 
-  private calculate(stopSegment: number): {
-    fullCircle: number;
-    wheelTurn: number;
-    rotation: number;
-  } {
-    const fullCircle = 360;
-    const segmentAngle = fullCircle / this.segmentCount;
-    const wheelTurn = fullCircle * this.rotationCount;
-    const rotation = wheelTurn - segmentAngle * (stopSegment - 1);
+  async #rotateWheelTo(el: HTMLElement, finalDeg: number): Promise<void> {
+    const currentDeg = this.#getCurrentRotation(el);
+    const diffCW = (this.#normalize(finalDeg) - this.#normalize(currentDeg) + 360) % 360;
+    const targetDeg = currentDeg + this.#rotationCount * 360 + diffCW;
+    const overshootDeg = targetDeg + this.#overshootDeg;
 
-    return { fullCircle, wheelTurn, rotation };
-  }
+    const total = this.#duration + this.#returnDuration;
+    const overshootAt = this.#duration / total;
 
-  private spinBegin(): void {
-    this.state = WheelState.Spinning;
-    this.containerEl.classList.add('is-spinning');
-
-    WheelFortune._gsap.to(this.containerEl, {
-      '--blurring': '12px',
-      duration: 0.8,
-      delay: 0.25,
-      ease: 'circ.in',
-    });
-  }
-
-  private spinProcess(): void {
-    WheelFortune._gsap.to(this.containerEl, {
-      '--blurring': '0px',
-      duration: 1,
-      delay: 0.5,
-      ease: 'power2.out',
-    });
-  }
-
-  private spinEnd(): void {
-    this.currentSpinIndex += 1;
-
-    if (this.currentSpinIndex >= this.spinStates.length) {
-      this.containerEl.classList.add('end-last-spin');
-    }
-
-    this.state = WheelState.Idle;
-    this.containerEl.classList.remove('is-spinning');
-
-    const spinState = this.spinStates[this.currentSpinIndex - 1];
-
-    spinState?.callback?.();
-  }
-
-  public spin(): void {
-    if (this.state === WheelState.Spinning) {
-      return;
-    }
-
-    if (this.tlLibration) {
-      this.tlLibration.kill();
-      this.tlLibration = undefined;
-    }
-
-    const spinState = this.spinStates[this.currentSpinIndex];
-
-    if (!spinState) {
-      return;
-    }
-
-    const { stopSegment } = spinState;
-    const { fullCircle, wheelTurn, rotation } = this.calculate(stopSegment);
-
-    this.tlSpin = WheelFortune._gsap.timeline({ paused: true });
-    this.tlBlackout = WheelFortune._gsap.timeline({ paused: true });
-
-    this.tlSpin
-      .to(this.segmentsEl, {
-        clearProps: 'rotation',
-        ease: 'power2.in',
-        rotation: `+=${wheelTurn}`,
-        duration: 1.5,
-        onStart: () => this.spinBegin(),
-      })
-      .to(this.segmentsEl, {
-        rotation: `+=${fullCircle * this.rotationCount}`,
-        duration: 0.15 * this.rotationCount,
-        ease: 'none',
-      })
-      .to(this.segmentsEl, {
-        ease: 'back.out(1.2)',
-        rotation: `+=${rotation}`,
-        duration: 3,
-        onStart: () => this.spinProcess(),
-        onComplete: () => {
-          this.tlBlackout?.restart();
-        },
-      });
-
-    this.tlBlackout
-      .to(this.containerEl, {
-        '--blackout-opacity': '0.6',
-        duration: 0.5,
-        ease: 'power2.in',
-      })
-      .to(
-        this.containerEl,
+    const spin = el.animate(
+      [
         {
-          '--blackout-opacity': '0',
-          duration: 0.5,
-          ease: 'power2.out',
-          onComplete: () => this.spinEnd(),
+          transform: `rotate(${currentDeg}deg)`,
+          easing: 'cubic-bezier(0.86,0,0.07,1)',
         },
-        '<1.5',
-      );
-
-    this.tlSpin.restart();
-  }
-
-  private libration(): void {
-    if (this.state === WheelState.Spinning) {
-      return;
-    }
-
-    this.state = WheelState.Librating;
-    this.tlLibration = WheelFortune._gsap.timeline();
-
-    this.tlLibration
-      .set(this.segmentsEl, { rotate: 0 })
-      .to(this.segmentsEl, {
-        rotate: -6,
-        duration: 0.75,
-        ease: 'power1.inOut',
-      })
-      .fromTo(
-        this.segmentsEl,
-        { rotate: -6 },
         {
-          rotate: 6,
-          duration: 1.5,
-          repeat: -1,
-          yoyo: true,
-          ease: 'power1.inOut',
+          offset: overshootAt,
+          transform: `rotate(${overshootDeg}deg)`,
+          easing: 'cubic-bezier(0.77,0,0.175,1)',
         },
-      );
+        { transform: `rotate(${targetDeg}deg)` },
+      ],
+      {
+        duration: total,
+        fill: 'forwards',
+      },
+    );
+
+    const blur = el.animate(
+      [
+        { filter: 'blur(0)' },
+        { offset: 0.15, filter: 'blur(1px)' },
+        { offset: 0.4, filter: 'blur(4px)' },
+        { offset: 0.6, filter: 'blur(1px)' },
+        { offset: 1, filter: 'blur(0)' },
+      ],
+      {
+        duration: total,
+        fill: 'forwards',
+        easing: 'ease-in-out',
+      },
+    );
+
+    await Promise.all([spin.finished, blur.finished]);
+
+    this.#finalRotation.set(el, this.#normalize(targetDeg));
   }
 
-  private spinAction(): void {
-    this.buttonEl.addEventListener('click', this.spinHandler);
+  #startSway(el: HTMLElement): void {
+    if (this.#hasSpun) return;
+
+    this.#stopSway();
+    this.#swayingElement = el;
+
+    const base = this.#finalRotation.get(el) ?? this.#getCurrentRotation(el);
+
+    this.#swayAnimation = el.animate(
+      [
+        { transform: `rotate(${base - this.#swayAmplitude}deg)` },
+        { transform: `rotate(${base + this.#swayAmplitude}deg)` },
+      ],
+      {
+        duration: this.#swayPeriod,
+        direction: 'alternate',
+        iterations: Infinity,
+        easing: 'ease-in-out',
+        delay: -this.#swayPeriod / 2,
+      },
+    );
   }
 
-  public init(): void {
-    this.spinAction();
-    this.containerEl.style.setProperty('--blackout-opacity', '0');
-    this.containerEl.style.setProperty('--blackout-angle', this.segmentCount.toString());
+  #stopSway(): void {
+    if (!this.#swayAnimation || !this.#swayingElement) return;
 
-    if (this.wheelLibration) {
-      this.libration();
+    const el = this.#swayingElement;
+    const snapshot = getComputedStyle(el).transform;
+
+    this.#swayAnimation.commitStyles?.();
+    this.#swayAnimation.cancel();
+
+    el.style.transform = snapshot !== 'none' ? snapshot : '';
+
+    this.#swayAnimation = null;
+    this.#swayingElement = null;
+  }
+
+  #normalize(deg: number): number {
+    return ((deg % 360) + 360) % 360;
+  }
+
+  #getCurrentRotation(el: HTMLElement): number {
+    const t = getComputedStyle(el).transform;
+
+    if (!t || t === 'none') return 0;
+
+    const { a, b } = new DOMMatrixReadOnly(t);
+
+    return (Math.atan2(b, a) * 180) / Math.PI;
+  }
+
+  #cancelAnimations(el: HTMLElement): void {
+    el.getAnimations().forEach((a) => a.cancel());
+  }
+
+  destroy(): void {
+    this.#stopSway();
+    this.#cancelAnimations(this.#wheelElement);
+
+    this.#triggerButton?.removeEventListener('click', this.#onClick);
+
+    this.#finalRotation = new WeakMap();
+  }
+
+  reset(): void {
+    this.destroy();
+
+    this.#wheelElement.style.transform = '';
+
+    this.#rootElement.classList.remove(
+      `${this.#rootClassName}--spinning`,
+      `${this.#rootClassName}--completed`,
+      `${this.#rootClassName}--first-done`,
+      `${this.#rootClassName}--final-done`,
+    );
+
+    this.#currentSpinIndex = 0;
+    this.#hasSpun = false;
+
+    this.#triggerButton.addEventListener('click', this.#onClick);
+  }
+
+  async #runSpin(): Promise<void> {
+    const spinState = this.#spinStates[this.#currentSpinIndex];
+
+    if (!spinState) return;
+
+    this.#hasSpun = true;
+
+    this.#rootElement.classList.remove(`${this.#rootClassName}--completed`);
+    this.#rootElement.classList.add(`${this.#rootClassName}--spinning`);
+
+    this.#stopSway();
+
+    await this.#rotateWheelTo(this.#wheelElement, spinState.targetAngle);
+
+    this.#rootElement.classList.remove(`${this.#rootClassName}--spinning`);
+    this.#rootElement.classList.add(`${this.#rootClassName}--completed`);
+
+    if (this.#currentSpinIndex === 0) {
+      this.#rootElement.classList.add(`${this.#rootClassName}--first-done`);
     }
-  }
 
-  public destroy(): void {
-    WheelFortune._gsap.killTweensOf([this.containerEl, this.segmentsEl]);
+    if (this.#currentSpinIndex === this.#spinStates.length - 1) {
+      this.#rootElement.classList.add(`${this.#rootClassName}--final-done`);
+    }
 
-    this.buttonEl.removeEventListener('click', this.spinHandler);
+    spinState.callback?.();
+
+    this.#currentSpinIndex++;
   }
 }

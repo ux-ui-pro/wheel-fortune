@@ -11,44 +11,6 @@ export default [
     ignores: ['dist/**', 'node_modules/**'],
   },
   {
-    files: ['**/*.js'],
-    languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: {
-        ...globals.browser,
-        ...globals.es2022,
-      },
-    },
-    plugins: {
-      eslint: eslintPlugin,
-      import: importPlugin,
-    },
-    rules: {
-      ...eslintPlugin.configs.recommended.rules,
-      'import/order': [
-        'error',
-        {
-          groups: [['builtin', 'external', 'internal']],
-          'newlines-between': 'always',
-        },
-      ],
-      'import/no-unresolved': 'error',
-      'import/no-duplicates': 'error',
-      'max-len': [
-        'error',
-        {
-          code: 100,
-          ignoreUrls: true,
-          ignoreStrings: true,
-          ignoreTemplateLiterals: true,
-          ignoreComments: true,
-        },
-      ],
-      'linebreak-style': ['error', 'unix'],
-    },
-  },
-  {
     files: ['**/*.ts'],
     languageOptions: {
       ecmaVersion: 'latest',
@@ -58,8 +20,6 @@ export default [
         project: './tsconfig.json',
       },
       globals: {
-        gsap: 'readonly',
-        CustomEase: 'readonly',
         ...globals.browser,
         ...globals.es2022,
       },

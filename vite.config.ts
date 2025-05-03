@@ -15,12 +15,11 @@ export default defineConfig({
     lib: {
       entry: 'src/index.ts',
       name: 'WheelFortune',
-      formats: ['es', 'cjs', 'umd'],
+      formats: ['es', 'cjs'],
       fileName: (format) => `index.${format}.js`,
     },
     emptyOutDir: true,
     rollupOptions: {
-      external: ['gsap'],
       plugins: [
         terser({
           compress: {
@@ -40,15 +39,8 @@ export default defineConfig({
         }),
       ],
       output: {
-        globals: {
-          gsap: 'gsap',
-        },
         assetFileNames: 'index.[ext]',
       },
     },
-  },
-  server: {
-    open: true,
-    port: 3000,
   },
 });

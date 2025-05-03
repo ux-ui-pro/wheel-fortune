@@ -1,7 +1,7 @@
 {
   "name": "wheel-fortune",
-  "version": "3.1.0",
-  "description": "WheelFortune implements an animation of a spinning wheel of fortune using the GSAP library. It allows customization of parameters including the number of segments, number of revolutions, spin states, and callbacks.",
+  "version": "4.0.0",
+  "description": "A lightweight, customizable spinning wheel component for web games and raffles",
   "author": "ux-ui.pro",
   "license": "MIT",
   "repository": {
@@ -24,13 +24,11 @@
   "source": "src/index.ts",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
-  "browser": "./dist/index.umd.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "require": "./dist/index.cjs.js",
-      "import": "./dist/index.es.js",
-      "default": "./dist/index.umd.js"
+      "import": "./dist/index.es.js"
     },
     "./dist/*": "./dist/*"
   },
@@ -38,38 +36,44 @@
     "dist/"
   ],
   "devDependencies": {
-    "@eslint/js": "9.22.0",
+    "@eslint/js": "9.26.0",
     "@rollup/plugin-terser": "0.4.4",
-    "@types/node": "22.13.10",
-    "@typescript-eslint/eslint-plugin": "8.26.0",
-    "@typescript-eslint/parser": "8.26.0",
-    "eslint": "9.22.0",
-    "eslint-config-prettier": "10.1.1",
-    "eslint-import-resolver-typescript": "3.8.3",
+    "@types/node": "22.15.3",
+    "@typescript-eslint/eslint-plugin": "8.31.1",
+    "@typescript-eslint/parser": "8.31.1",
+    "eslint": "9.26.0",
+    "eslint-config-prettier": "10.1.2",
+    "eslint-import-resolver-typescript": "4.3.4",
     "eslint-plugin-import": "2.31.0",
     "globals": "16.0.0",
     "prettier": "3.5.3",
     "rimraf": "6.0.1",
-    "typescript": "5.8.2",
-    "vite": "6.2.1",
-    "vite-plugin-dts": "4.5.3",
-    "gsap": "3.12.7"
+    "typescript": "5.8.3",
+    "vite": "6.3.4",
+    "vite-plugin-dts": "4.5.3"
   },
   "keywords": [
-    "wheel of fortune",
-    "spin wheel",
-    "spinner",
-    "spinning wheel",
-    "wheel animation",
-    "gsap",
+    "wheel",
+    "spin",
+    "roulette",
+    "wheel-spinner",
+    "fortune-wheel",
+    "spinning-wheel",
+    "lucky-wheel",
+    "prize",
+    "game",
+    "gamification",
+    "animation",
+    "ui",
+    "ux",
+    "interactive",
+    "component",
     "typescript",
     "javascript",
-    "game",
-    "roulette",
-    "fortune wheel",
-    "customizable",
-    "interactive",
-    "animation",
-    "effects"
+    "html",
+    "css",
+    "web",
+    "front-end",
+    "dom"
   ]
 }
