@@ -22,7 +22,7 @@ If you're relying on the GSAP-based version, you can stay on [version 3.1.0](htt
 
 <sup>1.7kB gzipped</sup>
 
-<a href="https://codepen.io/ux-ui/pen/jEEzBed">Demo</a>
+<a href="https://codepen.io/ux-ui/pen/NWJZNaP">Demo</a>
 
 </div>
 <br>
