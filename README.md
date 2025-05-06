@@ -20,7 +20,7 @@ If you're relying on the GSAP-based version, you can stay on [version 3.1.0](htt
 [![GitHub package version](https://img.shields.io/github/package-json/v/ux-ui-pro/wheel-fortune.svg)](https://github.com/ux-ui-pro/wheel-fortune)
 [![NPM Downloads](https://img.shields.io/npm/dm/wheel-fortune.svg?style=flat)](https://www.npmjs.org/package/wheel-fortune)
 
-<sup>1.7kB gzipped</sup>
+<sup>2kB gzipped</sup>
 
 <a href="https://codepen.io/ux-ui/pen/NWJZNaP">Demo</a>
 
