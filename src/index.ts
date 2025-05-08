@@ -71,10 +71,11 @@ export default class WheelFortune {
     this.#wheelElement = wheel;
     this.#triggerButton = trigger;
 
-    this.#triggerButton.addEventListener('click', this.#onClick);
-
-    this.#startSway(this.#wheelElement);
+    this.#enableWillChange();
     this.#warmUp();
+
+    this.#triggerButton.addEventListener('click', this.#onClick);
+    this.#startSway(this.#wheelElement);
   }
 
   destroy(): void {
@@ -101,32 +102,37 @@ export default class WheelFortune {
 
     this.#currentSpinIndex = 0;
     this.#hasSpun = false;
-    this.#warmedUp = true;
+    this.#warmedUp = false;
     this.#willChangeActive = false;
 
-    this.#triggerButton.addEventListener('click', this.#onClick);
+    this.#enableWillChange();
+    this.#warmUp();
 
+    this.#triggerButton.addEventListener('click', this.#onClick);
     this.#startSway(this.#wheelElement);
   }
 
   #warmUp(): void {
     if (this.#warmedUp) return;
 
-    const warm = this.#wheelElement.animate(
+    this.#enableWillChange();
+
+    const fakeSpin = this.#wheelElement.animate(
       [
-        {
-          transform: 'rotate(0deg)',
-          filter: 'blur(0px)',
-        },
-        {
-          transform: 'rotate(0.01deg)',
-          filter: 'blur(2px)',
-        },
+        { transform: 'rotate(0deg)', filter: 'blur(0px)', opacity: 0 },
+        { transform: 'rotate(0.01deg)', filter: 'blur(2px)', opacity: 0 },
       ],
-      { duration: 1 },
+      {
+        duration: 100,
+        fill: 'forwards',
+      },
     );
 
-    warm.cancel();
+    void this.#wheelElement.offsetHeight;
+
+    fakeSpin.onfinish = (): void => {
+      fakeSpin.cancel();
+    };
 
     this.#warmedUp = true;
   }
