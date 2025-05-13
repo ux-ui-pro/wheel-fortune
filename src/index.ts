@@ -48,10 +48,9 @@ export default class WheelFortune {
     this.#rotationCount = options.rotationCount ?? 6;
     this.#duration = options.duration ?? 5000;
     this.#overshootDeg = options.overshootDeg ?? 15;
-    this.#returnDuration = options.returnDuration ?? 1000;
+    this.#returnDuration = options.returnDuration ?? 1350;
     this.#swayAmplitude = options.swayOptions?.amplitude ?? 6;
     this.#swayPeriod = options.swayOptions?.period ?? 1500;
-
     this.#spinStates = [...(options.spinStates ?? [])];
 
     const selector = options.rootSelector.trim();
@@ -70,18 +69,18 @@ export default class WheelFortune {
     this.#wheelElement = wheel;
     this.#triggerButton = trigger;
 
-    this.#dummyWarmUp();
-
-    this.#startSway(this.#wheelElement);
+    this.#warmUp();
 
     this.#triggerButton.addEventListener('click', this.#onClick);
+
+    this.#startSway(this.#wheelElement);
   }
 
   destroy(): void {
     this.#stopSway();
     this.#cancelAnimations(this.#wheelElement);
 
-    this.#triggerButton.removeEventListener('click', this.#onClick);
+    this.#triggerButton?.removeEventListener('click', this.#onClick);
     this.#finalRotation = new WeakMap();
   }
 
@@ -95,42 +94,44 @@ export default class WheelFortune {
       `${this.#rootClassName}--first-done`,
       `${this.#rootClassName}--final-done`,
     );
+
     this.#currentSpinIndex = 0;
     this.#hasSpun = false;
     this.#warmedUp = false;
 
-    this.init();
+    this.#warmUp();
+
+    this.#triggerButton.addEventListener('click', this.#onClick);
+    this.#startSway(this.#wheelElement);
   }
 
-  #dummyWarmUp(): void {
+  #warmUp(): void {
     if (this.#warmedUp) return;
 
-    const dummy = this.#wheelElement.animate(
+    const fakeSpin = this.#wheelElement.animate(
       [
         {
           transform: 'rotate(0deg)',
           filter: 'blur(0px)',
-          offset: 0,
+          opacity: 0,
         },
         {
-          transform: 'rotate(0deg)',
-          filter: 'blur(0px)',
-          offset: 0.99999,
-        },
-        {
-          transform: 'rotate(0deg)',
-          filter: 'blur(0px)',
-          offset: 1,
+          transform: 'rotate(0.01deg)',
+          filter: 'blur(2px)',
+          opacity: 0,
         },
       ],
       {
-        duration: 1,
-        easing: 'cubic-bezier(0.86,0,0.07,1)',
+        duration: 100,
         fill: 'forwards',
       },
     );
 
-    dummy.onfinish = (): void => dummy.cancel();
+    this.#wheelElement.getBoundingClientRect();
+
+    fakeSpin.onfinish = (): void => {
+      fakeSpin.cancel();
+    };
 
     this.#warmedUp = true;
   }
@@ -198,7 +199,7 @@ export default class WheelFortune {
         { offset: 0.15, filter: 'blur(1px)' },
         { offset: 0.4, filter: 'blur(2px)' },
         { offset: 0.6, filter: 'blur(1px)' },
-        { offset: 1, filter: 'none' },
+        { offset: 1, filter: 'blur(0)' },
       ],
       {
         duration: total,
@@ -218,7 +219,8 @@ export default class WheelFortune {
     this.#stopSway();
     this.#swayingElement = el;
 
-    const base = this.#finalRotation.get(el) ?? this.#getCurrentRotation(el);
+    const baseRaw = this.#finalRotation.get(el) ?? this.#getCurrentRotation(el);
+    const base = this.#normalize(baseRaw);
 
     this.#swayAnimation = el.animate(
       [
@@ -256,11 +258,8 @@ export default class WheelFortune {
 
   #getCurrentRotation(el: HTMLElement): number {
     const t = getComputedStyle(el).transform;
-
     if (!t || t === 'none') return 0;
-
     const { a, b } = new DOMMatrixReadOnly(t);
-
     return (Math.atan2(b, a) * 180) / Math.PI;
   }
 
