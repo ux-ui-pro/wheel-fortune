@@ -108,30 +108,14 @@ export default class WheelFortune {
   #warmUp(): void {
     if (this.#warmedUp) return;
 
-    const fakeSpin = this.#wheelElement.animate(
-      [
-        {
-          transform: 'rotate(0deg)',
-          filter: 'blur(0px)',
-          opacity: 0,
-        },
-        {
-          transform: 'rotate(0.01deg)',
-          filter: 'blur(2px)',
-          opacity: 0,
-        },
-      ],
-      {
-        duration: 100,
-        fill: 'forwards',
-      },
+    const warm = this.#wheelElement.animate(
+      [{ transform: 'rotate(0deg)' }, { transform: 'rotate(0.01deg)' }],
+      { duration: 60, fill: 'forwards' },
     );
 
     this.#wheelElement.getBoundingClientRect();
 
-    fakeSpin.onfinish = (): void => {
-      fakeSpin.cancel();
-    };
+    warm.onfinish = (): void => warm.cancel();
 
     this.#warmedUp = true;
   }
