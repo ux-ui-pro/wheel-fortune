@@ -39,7 +39,6 @@ export default class WheelFortune {
   #currentSpinIndex = 0;
   #hasSpun = false;
   #warmedUp = false;
-  #willChangeActive = false;
 
   #onClick: (e: MouseEvent) => void = () => {
     void this.#runSpin();
@@ -71,84 +70,69 @@ export default class WheelFortune {
     this.#wheelElement = wheel;
     this.#triggerButton = trigger;
 
-    this.#enableWillChange();
-    this.#warmUp();
+    this.#dummyWarmUp();
+
+    this.#startSway(this.#wheelElement);
 
     this.#triggerButton.addEventListener('click', this.#onClick);
-    this.#startSway(this.#wheelElement);
   }
 
   destroy(): void {
     this.#stopSway();
     this.#cancelAnimations(this.#wheelElement);
 
-    this.#triggerButton?.removeEventListener('click', this.#onClick);
+    this.#triggerButton.removeEventListener('click', this.#onClick);
     this.#finalRotation = new WeakMap();
-
-    if (this.#willChangeActive) this.#wheelElement.style.willChange = 'auto';
   }
 
   reset(): void {
     this.destroy();
 
     this.#wheelElement.style.transform = '';
-
     this.#rootElement.classList.remove(
       `${this.#rootClassName}--spinning`,
       `${this.#rootClassName}--completed`,
       `${this.#rootClassName}--first-done`,
       `${this.#rootClassName}--final-done`,
     );
-
     this.#currentSpinIndex = 0;
     this.#hasSpun = false;
     this.#warmedUp = false;
-    this.#willChangeActive = false;
 
-    this.#enableWillChange();
-    this.#warmUp();
-
-    this.#triggerButton.addEventListener('click', this.#onClick);
-    this.#startSway(this.#wheelElement);
+    this.init();
   }
 
-  #warmUp(): void {
+  #dummyWarmUp(): void {
     if (this.#warmedUp) return;
 
-    this.#enableWillChange();
-
-    const fakeSpin = this.#wheelElement.animate(
+    const dummy = this.#wheelElement.animate(
       [
-        { transform: 'rotate(0deg)', filter: 'blur(0px)', opacity: 0 },
-        { transform: 'rotate(0.01deg)', filter: 'blur(2px)', opacity: 0 },
+        {
+          transform: 'rotate(0deg)',
+          filter: 'blur(0px)',
+          offset: 0,
+        },
+        {
+          transform: 'rotate(0deg)',
+          filter: 'blur(0px)',
+          offset: 0.99999,
+        },
+        {
+          transform: 'rotate(0deg)',
+          filter: 'blur(0px)',
+          offset: 1,
+        },
       ],
       {
-        duration: 100,
+        duration: 1,
+        easing: 'cubic-bezier(0.86,0,0.07,1)',
         fill: 'forwards',
       },
     );
 
-    void this.#wheelElement.offsetHeight;
-
-    fakeSpin.onfinish = (): void => {
-      fakeSpin.cancel();
-    };
+    dummy.onfinish = (): void => dummy.cancel();
 
     this.#warmedUp = true;
-  }
-
-  #enableWillChange(): void {
-    if (this.#willChangeActive) return;
-
-    this.#wheelElement.style.willChange = 'transform, filter';
-    this.#willChangeActive = true;
-  }
-
-  #disableWillChange(): void {
-    if (!this.#willChangeActive) return;
-
-    this.#wheelElement.style.willChange = 'auto';
-    this.#willChangeActive = false;
   }
 
   async #runSpin(): Promise<void> {
@@ -158,16 +142,19 @@ export default class WheelFortune {
 
     this.#hasSpun = true;
 
-    this.#rootElement.classList.remove(`${this.#rootClassName}--completed`);
-    this.#rootElement.classList.add(`${this.#rootClassName}--spinning`);
+    this.#rootElement.classList.replace(
+      `${this.#rootClassName}--completed`,
+      `${this.#rootClassName}--spinning`,
+    );
 
     this.#stopSway();
-    this.#enableWillChange();
 
     await this.#rotateWheelTo(this.#wheelElement, spinState.targetAngle);
 
-    this.#rootElement.classList.remove(`${this.#rootClassName}--spinning`);
-    this.#rootElement.classList.add(`${this.#rootClassName}--completed`);
+    this.#rootElement.classList.replace(
+      `${this.#rootClassName}--spinning`,
+      `${this.#rootClassName}--completed`,
+    );
 
     if (this.#currentSpinIndex === 0) {
       this.#rootElement.classList.add(`${this.#rootClassName}--first-done`);
@@ -175,7 +162,6 @@ export default class WheelFortune {
 
     if (this.#currentSpinIndex === this.#spinStates.length - 1) {
       this.#rootElement.classList.add(`${this.#rootClassName}--final-done`);
-      this.#disableWillChange();
     }
 
     spinState.callback?.();
