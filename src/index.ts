@@ -142,19 +142,15 @@ export default class WheelFortune {
 
     this.#hasSpun = true;
 
-    this.#rootElement.classList.replace(
-      `${this.#rootClassName}--completed`,
-      `${this.#rootClassName}--spinning`,
-    );
+    this.#rootElement.classList.remove(`${this.#rootClassName}--completed`);
+    this.#rootElement.classList.add(`${this.#rootClassName}--spinning`);
 
     this.#stopSway();
 
     await this.#rotateWheelTo(this.#wheelElement, spinState.targetAngle);
 
-    this.#rootElement.classList.replace(
-      `${this.#rootClassName}--spinning`,
-      `${this.#rootClassName}--completed`,
-    );
+    this.#rootElement.classList.remove(`${this.#rootClassName}--spinning`);
+    this.#rootElement.classList.add(`${this.#rootClassName}--completed`);
 
     if (this.#currentSpinIndex === 0) {
       this.#rootElement.classList.add(`${this.#rootClassName}--first-done`);
@@ -202,7 +198,7 @@ export default class WheelFortune {
         { offset: 0.15, filter: 'blur(1px)' },
         { offset: 0.4, filter: 'blur(2px)' },
         { offset: 0.6, filter: 'blur(1px)' },
-        { offset: 1, filter: 'blur(0)' },
+        { offset: 1, filter: 'none' },
       ],
       {
         duration: total,
