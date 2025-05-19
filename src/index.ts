@@ -105,20 +105,19 @@ export default class WheelFortune {
     if (this.#warmedUp) return;
 
     const warm = this.#wheelElement.animate(
-      [
-        { transform: 'rotate(0deg)', filter: 'blur(0)' },
-        { transform: 'rotate(0.01deg)', filter: 'blur(0.4px)' },
-      ],
+      [{ filter: 'blur(0)' }, { filter: 'blur(0.4px)', offset: 0.5 }, { filter: 'blur(0)' }],
       { duration: 64, fill: 'forwards' },
     );
 
     this.#wheelElement.getBoundingClientRect();
 
     warm.onfinish = (): void => {
+      warm.commitStyles?.();
       warm.cancel();
     };
 
     this.#decodeImages(this.#wheelElement);
+
     this.#warmedUp = true;
   }
 
