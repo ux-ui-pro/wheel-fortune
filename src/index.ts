@@ -70,16 +70,13 @@ export default class WheelFortune {
     this.#triggerButton = trigger;
 
     this.#warmUp();
-
     this.#triggerButton.addEventListener('click', this.#onClick);
-
     this.#startSway(this.#wheelElement);
   }
 
   destroy(): void {
     this.#stopSway();
     this.#cancelAnimations(this.#wheelElement);
-
     this.#triggerButton?.removeEventListener('click', this.#onClick);
     this.#finalRotation = new WeakMap();
   }
@@ -100,7 +97,6 @@ export default class WheelFortune {
     this.#warmedUp = false;
 
     this.#warmUp();
-
     this.#triggerButton.addEventListener('click', this.#onClick);
     this.#startSway(this.#wheelElement);
   }
@@ -109,15 +105,27 @@ export default class WheelFortune {
     if (this.#warmedUp) return;
 
     const warm = this.#wheelElement.animate(
-      [{ transform: 'rotate(0deg)' }, { transform: 'rotate(0.01deg)' }],
-      { duration: 60, fill: 'forwards' },
+      [
+        { transform: 'rotate(0deg)', filter: 'blur(0)' },
+        { transform: 'rotate(0.01deg)', filter: 'blur(0.4px)' },
+      ],
+      { duration: 64, fill: 'forwards' },
     );
 
     this.#wheelElement.getBoundingClientRect();
 
-    warm.onfinish = (): void => warm.cancel();
+    warm.onfinish = (): void => {
+      warm.cancel();
+    };
 
+    this.#decodeImages(this.#wheelElement);
     this.#warmedUp = true;
+  }
+
+  #decodeImages(root: HTMLElement): void {
+    root.querySelectorAll('img').forEach((img) => {
+      img.decode?.().catch(() => {});
+    });
   }
 
   async #runSpin(): Promise<void> {
@@ -137,13 +145,11 @@ export default class WheelFortune {
     this.#rootElement.classList.remove(`${this.#rootClassName}--spinning`);
     this.#rootElement.classList.add(`${this.#rootClassName}--completed`);
 
-    if (this.#currentSpinIndex === 0) {
+    if (this.#currentSpinIndex === 0)
       this.#rootElement.classList.add(`${this.#rootClassName}--first-done`);
-    }
 
-    if (this.#currentSpinIndex === this.#spinStates.length - 1) {
+    if (this.#currentSpinIndex === this.#spinStates.length - 1)
       this.#rootElement.classList.add(`${this.#rootClassName}--final-done`);
-    }
 
     spinState.callback?.();
 
@@ -160,10 +166,7 @@ export default class WheelFortune {
 
     const spin = el.animate(
       [
-        {
-          transform: `rotate(${currentDeg}deg)`,
-          easing: 'cubic-bezier(0.86,0,0.07,1)',
-        },
+        { transform: `rotate(${currentDeg}deg)`, easing: 'cubic-bezier(0.86,0,0.07,1)' },
         {
           offset: overshootAt,
           transform: `rotate(${overshoot}deg)`,
@@ -171,25 +174,19 @@ export default class WheelFortune {
         },
         { transform: `rotate(${targetDeg}deg)` },
       ],
-      {
-        duration: total,
-        fill: 'forwards',
-      },
+      { duration: total, fill: 'forwards' },
     );
 
     const blur = el.animate(
       [
         { filter: 'blur(0)' },
-        { offset: 0.15, filter: 'blur(1px)' },
-        { offset: 0.4, filter: 'blur(2px)' },
+        { offset: 0.1, filter: 'blur(0.4px)' },
+        { offset: 0.25, filter: 'blur(1px)' },
         { offset: 0.6, filter: 'blur(1px)' },
+        { offset: 0.9, filter: 'blur(0.4px)' },
         { offset: 1, filter: 'blur(0)' },
       ],
-      {
-        duration: total,
-        fill: 'forwards',
-        easing: 'ease-in-out',
-      },
+      { duration: total, fill: 'forwards', easing: 'ease-in-out' },
     );
 
     await Promise.all([spin.finished, blur.finished]);
